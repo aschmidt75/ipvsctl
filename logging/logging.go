@@ -18,6 +18,8 @@ func InitLogging(trace, debug, verbose bool) {
 		log.SetLevel(log.ErrorLevel)
 		log.SetOutput(os.Stdout)
 
+		var tf = &log.TextFormatter{}
+		tf.DisableTimestamp = true
 		if verbose {
 			log.SetLevel(log.InfoLevel)
 		}
@@ -32,6 +34,7 @@ func InitLogging(trace, debug, verbose bool) {
 
 		// file
 
-		log.SetFormatter(&log.TextFormatter{})
+		log.SetFormatter(tf)
+
 	})
 }

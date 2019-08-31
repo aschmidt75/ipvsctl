@@ -6,9 +6,9 @@ import (
 
 // Configuration holds all global config entries
 type Configuration struct {
-	Trace   bool `env:"FM_LOG_TRACE" envDefault:"false"`
-	Debug   bool `env:"FM_LOG_DEBUG" envDefault:"true"`
-	Verbose bool `env:"FM_LOG_VERBOSE" envDefault:"true"`
+	Trace   bool `env:"IPVSCTL_LOG_TRACE" envDefault:"false"`
+	Debug   bool `env:"IPVSCTL_LOG_DEBUG" envDefault:"false"`
+	Verbose bool `env:"IPVSCTL_LOG_VERBOSE" envDefault:"true"`
 }
 
 var (

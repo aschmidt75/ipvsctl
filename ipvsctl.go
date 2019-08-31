@@ -16,25 +16,21 @@ func main() {
 
 	app.Version("version", "0.0.1")
 
-	app.Spec = "[-d] [-v] [--trace]"
+	app.Spec = "[-d] [-v]"
 
-	trace := app.BoolOpt("trace", c.Trace, "Show trace messages")
 	debug := app.BoolOpt("d debug", c.Debug, "Show debug messages")
-	verbose := app.BoolOpt("v verbose", c.Verbose, "Show more information")
+	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: true. False equals to being quiet")
 
-	app.Command("get", "retrieve ipvs configuration", cmd.Get)
+	app.Command("get", "retrieve ipvs configuration and returns as yaml", cmd.Get)
 
 	app.Before = func() {
-		if trace != nil {
-			c.Trace = *trace
-		}
 		if debug != nil {
 			c.Debug = *debug
 		}
 		if verbose != nil {
 			c.Verbose = *verbose
 		}
-		logging.InitLogging(c.Trace, c.Debug, c.Verbose)
+		logging.InitLogging(false, c.Debug, c.Verbose)
 	}
 	app.Run(os.Args)
 }
