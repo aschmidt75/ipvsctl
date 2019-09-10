@@ -37,19 +37,17 @@ func (e *IPVSQueryError) Error() string {
 }
 
 // Get retrieves the current IPVC config with all services and destinations
-func Get() (*IPVSConfig, error) {
+func (ipvsconfig *IPVSConfig) Get() error {
 	log.Debug("Querying ipvs data...")
 
 	ipvs, err := ipvs.New("")
 	if err != nil {
-		return nil, &IPVSHandleError{}
+		return &IPVSHandleError{}
 	}
 	log.Debugf("%#v\n", ipvs)
+	defer ipvs.Close()
 
-	res := &IPVSConfig{}
-
-	err = getServicesWithDestinations(ipvs, res)
-	return res, err
+	return getServicesWithDestinations(ipvs, ipvsconfig)
 }
 
 func getForward(d *ipvs.Destination) string {
@@ -125,6 +123,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 			res.Services[idx] = &Service{
 				Address:   adrStr,
 				SchedName: service.SchedName,
+				service:   service,
 			}
 
 			err = getDestinationsForService(ipvs, service, res.Services[idx])

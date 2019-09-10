@@ -22,6 +22,7 @@ func main() {
 	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: true. False equals to being quiet")
 
 	app.Command("get", "retrieve ipvs configuration and returns as yaml", cmd.Get)
+	app.Command("apply", "apply a new configuration from file or stdin", cmd.Apply)
 
 	app.Before = func() {
 		if debug != nil {

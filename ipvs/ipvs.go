@@ -1,6 +1,6 @@
 // from libnetwork: https://github.com/docker/libnetwork
-// Code and documentation copyright 2015 Docker, inc. 
-// Code released under the Apache 2.0 license. 
+// Code and documentation copyright 2015 Docker, inc.
+// Code released under the Apache 2.0 license.
 
 // +build linux
 
@@ -25,7 +25,7 @@ const (
 type Service struct {
 	// Virtual service address.
 	Address  net.IP
-	Protocol uint16	// 6=tcp, 17=udp, 132=sctp
+	Protocol uint16 // 6=tcp, 17=udp, 132=sctp
 	Port     uint16
 	FWMark   uint32 // Firewall mark of the service.
 
@@ -34,7 +34,7 @@ type Service struct {
 	Flags         uint32
 	Timeout       uint32
 	Netmask       uint32
-	AddressFamily uint16			// 0x2=ipv6
+	AddressFamily uint16 // 0x2=ipv6
 	PEName        string
 	Stats         SvcStats
 }

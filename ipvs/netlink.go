@@ -1,6 +1,6 @@
 // from libnetwork: https://github.com/docker/libnetwork
-// Code and documentation copyright 2015 Docker, inc. 
-// Code released under the Apache 2.0 license. 
+// Code and documentation copyright 2015 Docker, inc.
+// Code released under the Apache 2.0 license.
 // +build linux
 
 package ipvs
@@ -18,7 +18,7 @@ import (
 	"time"
 	"unsafe"
 
-	"github.com/sirupsen/logrus"
+	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink/nl"
 	"github.com/vishvananda/netns"
 )
@@ -65,12 +65,12 @@ func setup() {
 	ipvsOnce.Do(func() {
 		var err error
 		if out, err := exec.Command("modprobe", "-va", "ip_vs").CombinedOutput(); err != nil {
-			logrus.Warnf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+			log.Warnf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
 		}
 
 		ipvsFamily, err = getIPVSFamily()
 		if err != nil {
-			logrus.Error("Could not get ipvs family information from the kernel. It is possible that ipvs is not enabled in your kernel. Native loadbalancing will not work until this is fixed.")
+			log.Error("Could not get ipvs family information from the kernel. It is possible that ipvs is not enabled in your kernel. Native loadbalancing will not work until this is fixed.")
 		}
 	})
 }
@@ -81,13 +81,18 @@ func fillService(s *Service) nl.NetlinkRequestData {
 	if s.FWMark != 0 {
 		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrFWMark, nl.Uint32Attr(s.FWMark))
 	} else {
-		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrProtocol, nl.Uint16Attr(s.Protocol))
-		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrAddress, rawIPData(s.Address))
+		rtProto := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrProtocol, nl.Uint16Attr(s.Protocol))
+		log.Tracef("cmdAttr+ rtProto=%#v\n", rtProto)
+
+		rtAddress := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrAddress, rawIPData(s.Address))
+		log.Tracef("cmdAttr+ rtAddress=%#v\n", rtAddress)
 
 		// Port needs to be in network byte order.
 		portBuf := new(bytes.Buffer)
 		binary.Write(portBuf, binary.BigEndian, s.Port)
-		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrPort, portBuf.Bytes())
+		rtPort := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrPort, portBuf.Bytes())
+		log.Tracef("cmdAttr+ rtPort=%#v\n", rtPort)
+
 	}
 
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrSchedName, nl.ZeroTerminated(s.SchedName))
@@ -101,6 +106,9 @@ func fillService(s *Service) nl.NetlinkRequestData {
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrFlags, f.Serialize())
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrTimeout, nl.Uint32Attr(s.Timeout))
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrNetmask, nl.Uint32Attr(s.Netmask))
+
+	log.Tracef("cmdAttr=%#v\n", cmdAttr)
+
 	return cmdAttr
 }
 
@@ -141,10 +149,13 @@ func (i *Handle) doCmdwithResponse(s *Service, d *Destination, cmd uint8) ([][]b
 		req.AddData(fillDestination(d))
 	}
 
+	//fmt.Printf("req=%#v\n", req)
+
 	res, err := execute(i.sock, req, 0)
 	if err != nil {
 		return [][]byte{}, err
 	}
+	//fmt.Printf("res=%#v\n", res)
 
 	return res, nil
 }

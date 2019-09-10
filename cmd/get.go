@@ -15,7 +15,8 @@ import (
 func Get(cmd *cli.Cmd) {
 	cmd.Action = func() {
 
-		res, err := integration.Get()
+		res := &integration.IPVSConfig{}
+		err := res.Get()
 		if err != nil {
 			log.Error(err)
 
