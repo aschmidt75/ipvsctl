@@ -1,10 +1,7 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
-
-	"gopkg.in/yaml.v2"
 
 	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
@@ -20,11 +17,11 @@ func Apply(cmd *cli.Cmd) {
 
 	cmd.Action = func() {
 
-		log.Debugf("Using file=%s\n", *applyFile)
 		if *applyFile == "" {
 			log.Errorf("Must specify an input file")
 			os.Exit(exitInvalidFile)
 		}
+		log.Debugf("Using file=%s\n", *applyFile)
 
 		// retrieve current config
 		currentConfig := &integration.IPVSConfig{}
@@ -42,23 +39,21 @@ func Apply(cmd *cli.Cmd) {
 		}
 
 		// read new config from file
-		newConfig := &integration.IPVSConfig{}
-
-		b, err := ioutil.ReadFile(*applyFile)
+		newConfig, err := readModelFromInput(applyFile)
 		if err != nil {
-			log.Errorf("Error reading from input file %s", *applyFile)
-			os.Exit(exitInvalidFile)
-		}
-
-		err = yaml.Unmarshal(b, newConfig)
-		if err != nil {
-			log.Errorf("Error parsing yaml from input file %s", *applyFile)
-			os.Exit(exitInvalidFile)
+			os.Exit(exitValidateErr)
 		}
 
 		log.Debugf("newConfig=%#v\n", newConfig)
 
-		//
+		// validate model before applying
+		err = currentConfig.Validate()
+		if err != nil {
+			log.Error(err)
+			os.Exit(exitValidateErr)
+		}
+
+		// apply new configuration
 		err = currentConfig.Apply(newConfig)
 		if err != nil {
 			log.Error(err)
