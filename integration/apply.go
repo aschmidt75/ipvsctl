@@ -60,6 +60,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 
 		if found == false {
 			log.Debugf("Adding to current config: %s,%s\n", newService.Address, newService.SchedName)
+
 			newIPVSService, err := newService.NewIpvsServiceStruct()
 			if err != nil {
 				log.Errorf("unable to add new service: %s", err)
@@ -75,6 +76,22 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 			}
 
 			log.Debugf("added: %#v\n", newIPVSService)
+
+			newIPVSDestinations, err := newService.NewIpvsDestinationsStruct()
+			if err != nil {
+				msg := fmt.Sprintf("unable to add new destinations for service %s: %s", newService.Address, err)
+				log.Error(msg)
+				return &IPVSApplyError{what: msg}
+			}
+
+			for _, newIPVSDestination := range newIPVSDestinations {
+				err = ipvs.NewDestination(newIPVSService, newIPVSDestination)
+				if err != nil {
+					msg := fmt.Sprintf("unable to add new destination %#v for service %s: %s", newIPVSDestination.Address, newService.Address, err)
+					log.Error(msg)
+					return &IPVSApplyError{what: msg}
+				}
+			}
 		}
 	}
 
@@ -99,9 +116,90 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 						log.Errorf("unable to edit new service: %s", err)
 						return &IPVSApplyError{what: "unable to edit ipvs service"}
 					}
-
-					log.Debugf("edited: %#v\n", newIPVSService)
+					log.Debugf("edited service: %#v\n", newIPVSService)
 				}
+
+				// iterate through destinations and compare
+
+				// 1. walk through existing destinations. If newService does not contain it, remove.
+				for _, destination := range service.Destinations {
+					found := false
+					for _, newDestination := range newService.Destinations {
+						if destination.Address == newDestination.Address {
+							found = true
+						}
+					}
+
+					if found == false {
+						log.Debugf("Removing from current config: %s\n", destination.Address)
+						err = ipvs.DelDestination(service.service, destination.destination)
+						if err != nil {
+							msg := fmt.Sprintf("unable to delete destination %#s for service %s: %s", destination.Address, service.Address, err)
+							log.Error(msg)
+							return &IPVSApplyError{what: msg}
+						}
+					}
+				}
+
+				// 2. walk through new destinations. If current service does not have it, add it.
+				for _, newDestination := range newService.Destinations {
+					found := false
+					for _, destination := range service.Destinations {
+						if destination.Address == newDestination.Address {
+							found = true
+						}
+					}
+					if found == false {
+						log.Debugf("Adding to current config: %s to %s\n", newDestination.Address, service.Address)
+
+						newIPVSDestination, err := newDestination.NewIpvsDestinationStruct()
+						if err != nil {
+							msg := fmt.Sprintf("unable to prepare new destination for service %s: %s", newService.Address, err)
+							log.Error(msg)
+							return &IPVSApplyError{what: msg}
+						}
+						err = ipvs.NewDestination(service.service, newIPVSDestination)
+						if err != nil {
+							msg := fmt.Sprintf("unable to add new destination %#v for service %s: %s", newIPVSDestination.Address, newService.Address, err)
+							log.Error(msg)
+							return &IPVSApplyError{what: msg}
+						}
+
+					}
+				}
+
+				// 3. walk through existing destination. If newService contains it, compare both and edit if necessary.
+				for _, destination := range service.Destinations {
+					for _, newDestination := range newService.Destinations {
+						if destination.Address == newDestination.Address {
+
+							log.Debugf("Comparing: %#v\n", destination)
+
+							//							log.Debugf("olddest=%#v\n", destination)
+							//							log.Debugf("newdest=%#v\n", newDestination)
+
+							if destination.Weight != newDestination.Weight ||
+								destination.Forward != newDestination.Forward {
+								log.Debugf("Updating: %s\n", destination.Address)
+
+								updateIPVSDestination, err := newDestination.NewIpvsDestinationStruct()
+								if err != nil {
+									msg := fmt.Sprintf("unable to prepare edited destination for service %s: %s", newService.Address, err)
+									log.Error(msg)
+									return &IPVSApplyError{what: msg}
+								}
+								err = ipvs.UpdateDestination(service.service, updateIPVSDestination)
+								if err != nil {
+									msg := fmt.Sprintf("unable to update destination %#v for service %s: %s", updateIPVSDestination.Address, newService.Address, err)
+									log.Error(msg)
+									return &IPVSApplyError{what: msg}
+								}
+
+							}
+						}
+					}
+				}
+
 			}
 		}
 	}

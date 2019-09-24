@@ -7,6 +7,14 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 
 	[ "$status" -eq 0 ]
 
+	run $IPVSCTL validate -f fixtures/apply-single-service-single-destination.yaml
+
+	[ "$status" -eq 0 ]
+
+	run $IPVSCTL validate -f fixtures/apply-single-service-multiple-destinations.yaml
+
+	[ "$status" -eq 0 ]
+
 	run $IPVSCTL validate -f fixtures/apply-two-services.yaml
 
 	[ "$status" -eq 0 ]
@@ -52,6 +60,47 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 
 @test "given incorrect models, when i validate them, it should fail (reason: bad scheduler names)" {
 	echo -e "services:\n - address: tcp://1.2.3.4/\n   sched: xrr\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect models, when i validate them, it should fail (reason: bad destination addresses)" {
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: \"\"\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: no.such.ip\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:BADPORT\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:89647\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect models, when i validate them, it should fail (reason: bad forward)" {
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:90\n      forward: nsf" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect models, when i validate them, it should fail (reason: bad weight)" {
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:90\n      weight: NaN" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+
+	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:90\n      weight: 89647" >/tmp/ipvsctlbats.yaml
 	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
 
 	[[ "$status" -ne 0 ]]

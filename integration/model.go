@@ -19,7 +19,7 @@ type Service struct {
 	SchedName    string         `yaml:"sched"`
 	Destinations []*Destination `yaml:"destinations,omitempty"`
 
-	service *ipvs.Service
+	service *ipvs.Service // underlay from ipvs package
 }
 
 // Destination models a real server behind a service
@@ -27,6 +27,8 @@ type Destination struct {
 	Address string `yaml:"address"`
 	Weight  int    `yaml:"weight"`  // weight for weighted forwarders
 	Forward string `yaml:"forward"` // forwards as string (g=gatewaying, i=ipip/tunnel, m=masquerade/nat)
+
+	destination *ipvs.Destination // underlay from ipvs package
 }
 
 // IPVSConfig is a single ipvs setup
@@ -113,16 +115,67 @@ func (s *Service) NewIpvsServiceStruct() (*ipvs.Service, error) {
 		protoAsNum = 132
 	}
 
+	schedName := s.SchedName
+	if schedName == "" {
+		schedName = "rr"
+	}
+
 	res := &ipvs.Service{
 		Protocol:      protoAsNum,
 		Address:       net.ParseIP(host),
 		Port:          uint16(port),
 		FWMark:        uint32(fwmark),
 		AddressFamily: syscall.AF_INET,
-		SchedName:     s.SchedName,
+		SchedName:     schedName,
 		PEName:        "",
 		Netmask:       0xffffffff,
 	}
 
 	return res, nil
+}
+
+// NewIpvsDestinationsStruct creates a new ipvs.Destination struct array from model integration.Service
+func (s *Service) NewIpvsDestinationsStruct() ([]*ipvs.Destination, error) {
+	res := make([]*ipvs.Destination, len(s.Destinations))
+
+	for idx, destination := range s.Destinations {
+		var err error
+		res[idx], err = destination.NewIpvsDestinationStruct()
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return res, nil
+}
+
+// NewIpvsDestinationStruct creates a single new ipvs.Destination struct from model integration.Service
+func (destination *Destination) NewIpvsDestinationStruct() (*ipvs.Destination, error) {
+	h, p, err := splitHostPort(destination.Address)
+	if err != nil {
+		return nil, err
+	}
+
+	var cf uint32
+	switch destination.Forward {
+	case "direct":
+		cf = 0x3
+	case "tunnel":
+		cf = 0x2
+	case "nat":
+		cf = 0x0
+	default:
+		return nil, errors.New("bad forward. Must be one of direct, tunnel or nat")
+	}
+
+	w := destination.Weight
+	if w <= 0 || w > 65535 {
+		w = 1
+	}
+	return &ipvs.Destination{
+		Address:         net.ParseIP(h),
+		Port:            uint16(p),
+		ConnectionFlags: cf,
+		Weight:          w,
+	}, nil
 }

@@ -56,11 +56,11 @@ func getForward(d *ipvs.Destination) string {
 	}
 	switch d.ConnectionFlags {
 	case 0x03:
-		return "g"
+		return "direct"
 	case 0x02:
-		return "i"
+		return "tunnel"
 	case 0x00:
-		return "m"
+		return "nat"
 	default:
 		return "?"
 	}
@@ -80,9 +80,10 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 			log.Debugf("%d -> %#v\n", idx, *dest)
 
 			s.Destinations[idx] = &Destination{
-				Address: fmt.Sprintf("%s:%d", dest.Address, dest.Port),
-				Weight:  dest.Weight,
-				Forward: getForward(dest),
+				Address:     fmt.Sprintf("%s:%d", dest.Address, dest.Port),
+				Weight:      dest.Weight,
+				Forward:     getForward(dest),
+				destination: dest,
 			}
 		}
 	}

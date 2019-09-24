@@ -47,7 +47,7 @@ func Apply(cmd *cli.Cmd) {
 		log.Debugf("newConfig=%#v\n", newConfig)
 
 		// validate model before applying
-		err = currentConfig.Validate()
+		err = newConfig.Validate()
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitValidateErr)

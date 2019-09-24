@@ -59,7 +59,7 @@ type Destination struct {
 	Address             net.IP
 	Port                uint16
 	Weight              int
-	ConnectionFlags     uint32
+	ConnectionFlags     uint32 // ipip/tunnel=2, masq/nat=0, route/gateway=3
 	AddressFamily       uint16
 	UpperThreshold      uint32
 	LowerThreshold      uint32
