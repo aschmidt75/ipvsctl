@@ -2,6 +2,7 @@
 
 IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 
+
 @test "given a correct model, when i validate it, it should pass" {
 	run $IPVSCTL validate -f fixtures/apply-single-service.yaml
 
@@ -101,6 +102,34 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 	[[ "$status" -ne 0 ]]
 
 	echo -e "services:\n  - address: tcp://1.2.3.4:80\n    destinations:\n    - address: 10.0.0.1:90\n      weight: 89647" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect defaults, when i validate them, it should fail (bad port)." {
+    echo -e "defaults:\n  port: 8374284\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect defaults, when i validate them, it should fail (bad scheduler)." {
+    echo -e "defaults:\n  port: 80\n  sched: nosuchsched\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect defaults, when i validate them, it should fail (bad forward)." {
+    echo -e "defaults:\n  port: 80\n  sched: wrr\n  forward: blackhole\n" >/tmp/ipvsctlbats.yaml
+	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
+
+	[[ "$status" -ne 0 ]]
+}
+
+@test "given incorrect defaults, when i validate them, it should fail (bad weight)." {
+    echo -e "defaults:\n  port: 80\n  sched: wrr\n  forward: tunnel\n  weight: 7462943" >/tmp/ipvsctlbats.yaml
 	run $IPVSCTL validate -f /tmp/ipvsctlbats.yaml
 
 	[[ "$status" -ne 0 ]]

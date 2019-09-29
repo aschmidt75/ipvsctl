@@ -22,6 +22,43 @@ var (
 // Validate checks ipvsconfig for structural errors
 func (ipvsconfig *IPVSConfig) Validate() error {
 
+	if ipvsconfig.Defaults.Port != nil {
+		v := *ipvsconfig.Defaults.Port
+		if v < 1 || v > 65535 {
+			return &IPVSValidateError{What: fmt.Sprintf("Default port out of range: %d", v)}
+		}
+	}
+	if ipvsconfig.Defaults.Weight != nil {
+		v := *ipvsconfig.Defaults.Weight
+		if v < 0 || v > 65535 {
+			return &IPVSValidateError{What: fmt.Sprintf("Default weight out of range: %d", v)}
+		}
+	}
+	if ipvsconfig.Defaults.SchedName != nil {
+		bOk := false
+		for _, sn := range schedNames {
+			if sn == *ipvsconfig.Defaults.SchedName {
+				bOk = true
+				break
+			}
+		}
+		if !bOk {
+			return &IPVSValidateError{What: fmt.Sprintf("invalid default scheduler: %s", *ipvsconfig.Defaults.SchedName)}
+		}
+	}
+	if ipvsconfig.Defaults.Forward != nil {
+		bOk := false
+		for _, sn := range forwardNames {
+			if sn == *ipvsconfig.Defaults.Forward {
+				bOk = true
+			}
+		}
+		if !bOk {
+			return &IPVSValidateError{What: fmt.Sprintf("invalid default forward: %s. Allowed forwards are direct,nat,tunnel", *ipvsconfig.Defaults.Forward)}
+		}
+
+	}
+
 	for _, service := range ipvsconfig.Services {
 		if service.Address == "" {
 			return &IPVSValidateError{What: fmt.Sprintf("Service address may not be empty")}
