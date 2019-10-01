@@ -24,6 +24,7 @@ func main() {
 	app.Command("get", "retrieve ipvs configuration and returns as yaml", cmd.Get)
 	app.Command("apply", "apply a new configuration from file or stdin", cmd.Apply)
 	app.Command("validate", "validate a configuration from file or stdin", cmd.Validate)
+	app.Command("changeset", "compare active ipvs configuration against file or stdin and return changeset", cmd.ChangeSet)
 
 	app.Before = func() {
 		if debug != nil {

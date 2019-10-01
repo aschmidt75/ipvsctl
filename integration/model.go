@@ -11,12 +11,15 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
+
+	log "github.com/sirupsen/logrus"
+
 )
 
 // Service describes an IPVS service entry
 type Service struct {
 	Address      string         `yaml:"address"`
-	SchedName    string         `yaml:"sched"`
+	SchedName    string         `yaml:"sched,omitempty"`
 	Destinations []*Destination `yaml:"destinations,omitempty"`
 
 	service *ipvs.Service // underlay from ipvs package
@@ -25,8 +28,8 @@ type Service struct {
 // Destination models a real server behind a service
 type Destination struct {
 	Address string `yaml:"address"`
-	Weight  int    `yaml:"weight"`  // weight for weighted forwarders
-	Forward string `yaml:"forward"` // forwards as string (direct, tunnel, nat)
+	Weight  int    `yaml:"weight,omitempty"`  // weight for weighted forwarders
+	Forward string `yaml:"forward,omitempty"` // forwards as string (direct, tunnel, nat)
 
 	destination *ipvs.Destination // underlay from ipvs package
 }
@@ -42,11 +45,48 @@ type Defaults struct {
 
 // IPVSConfig is a single ipvs setup
 type IPVSConfig struct {
-	Defaults *Defaults  `yaml:"defaults,omitempty"`
+	Defaults Defaults  `yaml:"defaults,omitempty"`
 	Services []*Service `yaml:"services,omitempty"`
 }
 
-// IsEqual for Services returns true if both s and b point to the same address
+// ChangeSet contains a number of change set items
+type ChangeSet struct {
+	Items []interface{} `yaml:"items,omitempty"`
+}
+
+// ChangeSetItemType as type for const names of types of change set items
+type ChangeSetItemType string
+
+const (
+	addService    ChangeSetItemType = "add-service"
+	updateService ChangeSetItemType = "update-service"
+	deleteService ChangeSetItemType = "delete-service"
+
+	addDestination    ChangeSetItemType = "add-destination"
+	updateDestination ChangeSetItemType = "update-destination"
+	deleteDestination ChangeSetItemType = "delete-destination"
+)
+
+// ChangeSetItem ...
+type ChangeSetItem struct {
+	Type        ChangeSetItemType `yaml:"type"`
+	Service     *Service          `yaml:"service,omitempty"`
+	Destination *Destination      `yaml:"destination,omitempty"`
+}
+
+// NewChangeSet makes a new changeset
+func NewChangeSet() *ChangeSet {
+	return &ChangeSet{
+		Items: make([]interface{}, 0, 5),
+	}
+}
+
+// AddChange adds a new item to the changeset
+func (cs *ChangeSet) AddChange(csi ChangeSetItem) {
+	cs.Items = append(cs.Items, csi)
+}
+
+// IsEqual for Services returns true if both s and b point to the same address string (that includes the protocol)
 func (s *Service) IsEqual(b *Service) bool {
 	return s.Address == b.Address
 }
@@ -295,3 +335,67 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 		Weight:          w,
 	}, nil
 }
+
+// IsEqual for Destination does a complete compare. it applies config defaults
+func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination) (bool, error) {
+	var err error
+
+	// compare host+port
+	ah, ap, err := splitHostPort(a.Address)
+	if err != nil {
+		return false, err
+	}
+	if ap == 0 && ca.Defaults.Port != nil && *ca.Defaults.Port != 0 {
+		ap = *ca.Defaults.Port
+	}
+
+	bh, bp, err := splitHostPort(b.Address)
+	if err != nil {
+		return false, err
+	}
+	if bp == 0 && cb.Defaults.Port != nil && *cb.Defaults.Port != 0 {
+		bp = *cb.Defaults.Port
+	}
+
+	if ah != bh {
+		log.Debugf("cmp: %s != %s\n", ah, bh)
+		return false, nil
+	}
+	if ap != bp {
+		log.Debugf("cmp: %d != %d\n", ap, bp)
+		return false, nil
+	}
+
+	// compare forward
+	af := a.Forward
+	bf := b.Forward
+	if af == "" && ca.Defaults.Forward != nil && *ca.Defaults.Forward != "" {
+		af = *ca.Defaults.Forward
+	}
+	if bf == "" && cb.Defaults.Forward != nil && *cb.Defaults.Forward != "" {
+		bf = *cb.Defaults.Forward
+	}
+	if af != bf {
+		log.Debugf("cmp: %s != %s\n", af, bf)
+		return false, nil
+	}
+
+	// compare weight
+	aw := a.Weight
+	bw := b.Weight
+	if aw == 0 && ca.Defaults.Weight != nil && *ca.Defaults.Weight != 0 {
+		aw = *ca.Defaults.Weight
+	}
+	if bw == 0 && cb.Defaults.Weight != nil && *cb.Defaults.Weight != 0 {
+		bw = *cb.Defaults.Weight
+	}
+
+	if aw != bw {
+		log.Debugf("cmp: %d != %d\n", aw, bw)
+		return false, nil
+	}
+
+	// everything is equal
+	return true, nil
+}
+

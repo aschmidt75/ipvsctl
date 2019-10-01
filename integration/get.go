@@ -66,6 +66,12 @@ func getForward(d *ipvs.Destination) string {
 	}
 }
 
+// MakeAdressStringFromIpvsDestination creates a model-valid address
+// string from an ipvs.Destination entry.
+func MakeAdressStringFromIpvsDestination(dest *ipvs.Destination) string {
+	return fmt.Sprintf("%s:%d", dest.Address, dest.Port)
+}
+
 func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Service) error {
 	//
 	dests, err := ipvs.GetDestinations(service)
@@ -80,7 +86,7 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 			log.Debugf("%d -> %#v\n", idx, *dest)
 
 			s.Destinations[idx] = &Destination{
-				Address:     fmt.Sprintf("%s:%d", dest.Address, dest.Port),
+				Address:     MakeAdressStringFromIpvsDestination(dest),
 				Weight:      dest.Weight,
 				Forward:     getForward(dest),
 				destination: dest,
@@ -89,6 +95,25 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 	}
 
 	return nil
+}
+
+// MakeAdressStringFromIpvsService creates a model-valid address
+// string from an ipvs.Service entry.
+func MakeAdressStringFromIpvsService(service *ipvs.Service) string {
+	var adrStr = ""
+	if service.Protocol != 0 {
+		protoStr := protoNumToStr(service)
+		ipStr := fmt.Sprintf("%s", service.Address)
+		var portStr = ""
+		if service.Port != 0 {
+			portStr = fmt.Sprintf(":%d", service.Port)
+		}
+		adrStr = fmt.Sprintf("%s://%s%s", protoStr, ipStr, portStr)
+	} else {
+		adrStr = fmt.Sprintf("fwmark:%d", service.FWMark)
+	}
+
+	return adrStr
 }
 
 func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
@@ -108,19 +133,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 
 			log.Debugf("%d -> %#v\n", idx, *service)
 
-			var adrStr = ""
-			if service.Protocol != 0 {
-				protoStr := protoNumToStr(service)
-				ipStr := fmt.Sprintf("%s", service.Address)
-				var portStr = ""
-				if service.Port != 0 {
-					portStr = fmt.Sprintf(":%d", service.Port)
-				}
-				adrStr = fmt.Sprintf("%s://%s%s", protoStr, ipStr, portStr)
-			} else {
-				adrStr = fmt.Sprintf("fwmark:%d", service.FWMark)
-			}
-
+			var adrStr = MakeAdressStringFromIpvsService(service)
 			res.Services[idx] = &Service{
 				Address:   adrStr,
 				SchedName: service.SchedName,

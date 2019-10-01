@@ -22,29 +22,36 @@ var (
 // Validate checks ipvsconfig for structural errors
 func (ipvsconfig *IPVSConfig) Validate() error {
 
+	defaultPort := 0
+	defaultWeight := 0
+	defaultSched := ""
+	defaultForward := ""
+
 	if ipvsconfig.Defaults.Port != nil {
 		v := *ipvsconfig.Defaults.Port
 		if v < 1 || v > 65535 {
 			return &IPVSValidateError{What: fmt.Sprintf("Default port out of range: %d", v)}
 		}
+		defaultPort = v
 	}
 	if ipvsconfig.Defaults.Weight != nil {
 		v := *ipvsconfig.Defaults.Weight
 		if v < 0 || v > 65535 {
 			return &IPVSValidateError{What: fmt.Sprintf("Default weight out of range: %d", v)}
 		}
+		defaultWeight = v
 	}
 	if ipvsconfig.Defaults.SchedName != nil {
 		bOk := false
 		for _, sn := range schedNames {
 			if sn == *ipvsconfig.Defaults.SchedName {
 				bOk = true
-				break
 			}
 		}
 		if !bOk {
 			return &IPVSValidateError{What: fmt.Sprintf("invalid default scheduler: %s", *ipvsconfig.Defaults.SchedName)}
 		}
+		defaultSched = *ipvsconfig.Defaults.SchedName
 	}
 	if ipvsconfig.Defaults.Forward != nil {
 		bOk := false
@@ -56,7 +63,7 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 		if !bOk {
 			return &IPVSValidateError{What: fmt.Sprintf("invalid default forward: %s. Allowed forwards are direct,nat,tunnel", *ipvsconfig.Defaults.Forward)}
 		}
-
+		defaultForward = *ipvsconfig.Defaults.Forward
 	}
 
 	for _, service := range ipvsconfig.Services {
@@ -100,6 +107,9 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 		}
 
 		// check scheduler if given
+		if service.SchedName == "" && defaultSched != "" {
+			service.SchedName = defaultSched
+		}
 		if service.SchedName != "" {
 			bOk := false
 			for _, sn := range schedNames {
@@ -128,10 +138,16 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 			if ip == nil {
 				return &IPVSValidateError{What: fmt.Sprintf("unable to parse address (%s) for service %s. Not an IP address.", h, service.Address)}
 			}
+			if p == 0 {
+				p = defaultPort
+			}
 			if p < 1 || p > 65535 {
 				return &IPVSValidateError{What: fmt.Sprintf("bad port (%d) for service %s", p, service.Address)}
 			}
 
+			if destination.Forward == "" && defaultForward != "" {
+				destination.Forward = defaultForward
+			}
 			if destination.Forward != "" {
 				bOk := false
 				for _, sn := range forwardNames {
@@ -144,6 +160,9 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 				}
 			}
 
+			if destination.Weight == 0 && defaultWeight != 0 {
+				destination.Weight = defaultWeight
+			}
 			if destination.Weight < 0 || destination.Weight > 65535 {
 				return &IPVSValidateError{What: fmt.Sprintf("invalid weight (%d) for destination %s in service %s.", destination.Weight, destination.Address, service.Address)}
 			}

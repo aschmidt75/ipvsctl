@@ -38,7 +38,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 		}
 
 		if found == false {
-			log.Debugf("Removing from current config: %s,%s\n", service.Address, service.SchedName)
+			log.Debugf("Removing service from current config: %s,%s\n", service.Address, service.SchedName)
 			err = ipvs.DelService(service.service)
 			if err != nil {
 				return &IPVSApplyError{what: "unable to delete service", origErr: err}
@@ -123,7 +123,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 					}
 
 					if found == false {
-						log.Debugf("Removing from current config: %s\n", destination.Address)
+						log.Debugf("Removing destination from current config: %s\n", destination.Address)
 						err = ipvs.DelDestination(service.service, destination.destination)
 						if err != nil {
 							return &IPVSApplyError{what: fmt.Sprintf("unable to delete destination %#s for service %s", destination.Address, service.Address), origErr: err}
