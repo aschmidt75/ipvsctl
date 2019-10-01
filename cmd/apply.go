@@ -18,10 +18,9 @@ func Apply(cmd *cli.Cmd) {
 	cmd.Action = func() {
 
 		if *applyFile == "" {
-			log.Errorf("Must specify an input file")
+			log.Errorf("Must specify an input file or - for stdin")
 			os.Exit(exitInvalidFile)
 		}
-		log.Debugf("Using file=%s\n", *applyFile)
 
 		// retrieve current config
 		currentConfig := &integration.IPVSConfig{}

@@ -1,0 +1,5 @@
+services:
+  - address: tcp://1.2.3.4:80
+    sched: rr 
+  - address: tcp://1.2.3.5:80
+    sched: wrr    

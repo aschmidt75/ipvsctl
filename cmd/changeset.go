@@ -21,10 +21,9 @@ func ChangeSet(cmd *cli.Cmd) {
 	cmd.Action = func() {
 
 		if *csFile == "" {
-			log.Errorf("Must specify an input file")
+			log.Errorf("Must specify an input file or - for stdin")
 			os.Exit(exitInvalidFile)
 		}
-		log.Debugf("Using file=%s\n", *csFile)
 
 		// retrieve current config
 		currentConfig := &integration.IPVSConfig{}
