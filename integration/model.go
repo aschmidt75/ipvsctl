@@ -12,8 +12,6 @@ import (
 	"strings"
 	"syscall"
 
-	log "github.com/sirupsen/logrus"
-
 )
 
 // Service describes an IPVS service entry
@@ -367,7 +365,7 @@ func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Serv
 		bf = "rr"
 	}
 	if af != bf {
-		log.Debugf("cmp sched: %s != %s\n", af, bf)
+		//log.Debugf("cmp sched: %s != %s\n", af, bf)
 		return false, nil
 	}
 
@@ -395,20 +393,20 @@ func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConf
 	}
 
 	if afwm != 0 && bfwm != 0 && afwm != bfwm {
-		log.Debugf("cmp fwm: %d != %d\n", afwm, bfwm)
+		//log.Debugf("cmp fwm: %d != %d\n", afwm, bfwm)
 		// both use fwmark, but different one
 		return false, nil
 	}
 	if apr != bpr {
-		log.Debugf("cmp proto: %s != %s\n", apr, bpr)
+		//log.Debugf("cmp proto: %s != %s\n", apr, bpr)
 		return false, nil
 	}
 	if ah != bh {
-		log.Debugf("cmp host: %s != %s\n", ah, bh)
+		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		log.Debugf("cmp port: %d != %d\n", ap, bp)
+		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 
@@ -437,11 +435,11 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	}
 
 	if ah != bh {
-		log.Debugf("cmp host: %s != %s\n", ah, bh)
+		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		log.Debugf("cmp port: %d != %d\n", ap, bp)
+		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 
@@ -455,7 +453,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		bf = *cb.Defaults.Forward
 	}
 	if af != bf {
-		log.Debugf("cmp forward: %s != %s\n", af, bf)
+		//log.Debugf("cmp forward: %s != %s\n", af, bf)
 		return false, nil
 	}
 
@@ -477,7 +475,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	}
 
 	if aw != bw {
-		log.Debugf("cmp weight: %d != %d\n", aw, bw)
+		//log.Debugf("cmp weight: %d != %d\n", aw, bw)
 		return false, nil
 	}
 
@@ -506,11 +504,11 @@ func CompareDestinationIdentifyingEquality(ca *IPVSConfig, a *Destination, cb *I
 	}
 
 	if ah != bh {
-		log.Debugf("cmp host: %s != %s\n", ah, bh)
+		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		log.Debugf("cmp port: %d != %d\n", ap, bp)
+		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 	// everything is equal

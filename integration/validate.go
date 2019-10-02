@@ -156,7 +156,7 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 					}
 				}
 				if !bOk {
-					return &IPVSValidateError{What: fmt.Sprintf("invalid forward (%s) for destination %s in service %s.", destination.Forward, destination.Address, service.Address)}
+					return &IPVSValidateError{What: fmt.Sprintf("invalid forward (%s) for destination %s in service %s. Allowed are direct,nat,tunnel", destination.Forward, destination.Address, service.Address)}
 				}
 			}
 
