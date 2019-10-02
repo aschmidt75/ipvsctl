@@ -3,7 +3,6 @@ package cmd
 import (
 	"os"
 
-	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
 )
@@ -22,28 +21,13 @@ func Apply(cmd *cli.Cmd) {
 			os.Exit(exitInvalidFile)
 		}
 
-		// retrieve current config
-		currentConfig := &integration.IPVSConfig{}
-		err := currentConfig.Get()
-		if err != nil {
-			log.Error(err)
-
-			if _, ok := err.(*integration.IPVSHandleError); ok {
-				os.Exit(exitIpvsErrHandle)
-			}
-			if _, ok := err.(*integration.IPVSQueryError); ok {
-				os.Exit(exitIpvsErrQuery)
-			}
-			os.Exit(exitUnknown)
-		}
-
 		// read new config from file
 		newConfig, err := readModelFromInput(applyFile)
 		if err != nil {
 			os.Exit(exitValidateErr)
 		}
 
-		log.Debugf("newConfig=%#v\n", newConfig)
+		log.WithField("newconfig", newConfig).Debugf("read")
 
 		// validate model before applying
 		err = newConfig.Validate()
@@ -53,10 +37,11 @@ func Apply(cmd *cli.Cmd) {
 		}
 
 		// apply new configuration
-		err = currentConfig.Apply(newConfig)
+		err = MustGetCurrentConfig().Apply(newConfig)
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitApplyErr)
 		}
+		log.Infof("Applied configuration from %s", *applyFile)
 	}
 }

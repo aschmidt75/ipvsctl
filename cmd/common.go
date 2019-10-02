@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"io/ioutil"
 	"os"
+	"io/ioutil"
 
 	"gopkg.in/yaml.v2"
 
@@ -46,3 +46,24 @@ func readModelFromInput(filename *string) (*integration.IPVSConfig, error) {
 
 	return c, err
 }
+
+// MustGetCurrentConfig queries the current IPVS configuration
+// or exits in case of an error.
+func MustGetCurrentConfig() *integration.IPVSConfig {
+	// retrieve current config
+	currentConfig := &integration.IPVSConfig{}
+	err := currentConfig.Get()
+	if err != nil {
+		log.Error(err)
+
+		if _, ok := err.(*integration.IPVSHandleError); ok {
+			os.Exit(exitIpvsErrHandle)
+		}
+		if _, ok := err.(*integration.IPVSQueryError); ok {
+			os.Exit(exitIpvsErrQuery)
+		}
+		os.Exit(exitUnknown)
+	}
+	return currentConfig
+}
+

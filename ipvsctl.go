@@ -19,12 +19,13 @@ func main() {
 	app.Spec = "[-d] [-v]"
 
 	debug := app.BoolOpt("d debug", c.Debug, "Show debug messages")
-	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: true. False equals to being quiet")
+	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: false. False equals to being quiet")
 
 	app.Command("get", "retrieve ipvs configuration and returns as yaml", cmd.Get)
 	app.Command("apply", "apply a new configuration from file or stdin", cmd.Apply)
 	app.Command("validate", "validate a configuration from file or stdin", cmd.Validate)
 	app.Command("changeset", "compare active ipvs configuration against file or stdin and return changeset", cmd.ChangeSet)
+	app.Command("set", "change services and destinations", cmd.Set)
 
 	app.Before = func() {
 		if debug != nil {

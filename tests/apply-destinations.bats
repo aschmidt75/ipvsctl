@@ -10,7 +10,7 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 
 	[ "$status" -eq 0 ]
 	[[ "${output}" =~ 1\.2\.3\.4:80 ]]
-	[[ "${output}" =~ \-\>[[:blank:]]10\.0\.0\.1:80[[:blank:]]+Route[[:blank:]]+1 ]]
+	[[ "${output}" =~ \-\>[[:blank:]]10\.0\.0\.1:80[[:blank:]]+Route[[:blank:]]+0 ]]
 
 	ipvsadm -C
 }
