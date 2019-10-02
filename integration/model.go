@@ -111,7 +111,7 @@ func splitHostPort(in string) (host string, port int, err error) {
 
 	a := strings.Split(in, ":")
 	if len(a) != 2 {
-		return "", 0, errors.New("parse error")
+		return "", 0, errors.New("parse error in "+in)
 	}
 	p, err := strconv.ParseInt(a[1], 10, 32)
 	if err != nil {
@@ -339,7 +339,83 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 	}, nil
 }
 
-// IsEqual for Destination does a complete compare. it applies config defaults
+// CompareServicesEquality for Service does a complete compare. it applies config defaults
+func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Service) (bool, error) {
+	var err error
+
+	ident, err := CompareServicesIdentifyingEquality(ca, a, cb, b )
+	if err != nil {
+		return false, err
+	}
+	if ident == false {
+		return false, nil
+	}
+
+	// compare Scheduler
+	af := a.SchedName
+	bf := b.SchedName
+	if af == "" && ca.Defaults.SchedName != nil && *ca.Defaults.SchedName != "" {
+		af = *ca.Defaults.SchedName
+	}
+	if bf == "" && cb.Defaults.SchedName != nil && *cb.Defaults.SchedName != "" {
+		bf = *cb.Defaults.SchedName
+	}
+	if af == "" {
+		af = "rr"
+	}
+	if bf == "" {
+		bf = "rr"
+	}
+	if af != bf {
+		log.Debugf("cmp sched: %s != %s\n", af, bf)
+		return false, nil
+	}
+
+	// everything is equal
+	return true, nil
+}
+
+// CompareServicesIdentifyingEquality for Service compares service address including defaults
+func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Service) (bool, error) {
+	var err error
+
+	apr, ah, ap, afwm, err := splitCompoundAddress(a.Address)
+	if err != nil {
+		return false, err
+	}
+	if ap == 0 && ca.Defaults.Port != nil && *ca.Defaults.Port != 0 {
+		ap = *ca.Defaults.Port
+	}
+	bpr, bh, bp, bfwm, err := splitCompoundAddress(b.Address)
+	if err != nil {
+		return false, err
+	}
+	if bp == 0 && cb.Defaults.Port != nil && *cb.Defaults.Port != 0 {
+		bp = *cb.Defaults.Port
+	}
+
+	if afwm != 0 && bfwm != 0 && afwm != bfwm {
+		log.Debugf("cmp fwm: %d != %d\n", afwm, bfwm)
+		// both use fwmark, but different one
+		return false, nil
+	}
+	if apr != bpr {
+		log.Debugf("cmp proto: %s != %s\n", apr, bpr)
+		return false, nil
+	}
+	if ah != bh {
+		log.Debugf("cmp host: %s != %s\n", ah, bh)
+		return false, nil
+	}
+	if ap != bp {
+		log.Debugf("cmp port: %d != %d\n", ap, bp)
+		return false, nil
+	}
+
+	// everything is equal
+	return true, nil
+}
+
 func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination) (bool, error) {
 	var err error
 
@@ -361,11 +437,11 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	}
 
 	if ah != bh {
-		log.Debugf("cmp: %s != %s\n", ah, bh)
+		log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		log.Debugf("cmp: %d != %d\n", ap, bp)
+		log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 
@@ -379,7 +455,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		bf = *cb.Defaults.Forward
 	}
 	if af != bf {
-		log.Debugf("cmp: %s != %s\n", af, bf)
+		log.Debugf("cmp forward: %s != %s\n", af, bf)
 		return false, nil
 	}
 
@@ -392,12 +468,51 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	if bw == 0 && cb.Defaults.Weight != nil && *cb.Defaults.Weight != 0 {
 		bw = *cb.Defaults.Weight
 	}
+	// default weight is 1
+	if aw == 0 {
+		aw = 1
+	}
+	if bw == 0 {
+		bw = 1
+	}
 
 	if aw != bw {
-		log.Debugf("cmp: %d != %d\n", aw, bw)
+		log.Debugf("cmp weight: %d != %d\n", aw, bw)
 		return false, nil
 	}
 
+	// everything is equal
+	return true, nil
+}
+
+func CompareDestinationIdentifyingEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination) (bool, error) {
+	var err error
+
+	// compare host+port
+	ah, ap, err := splitHostPort(a.Address)
+	if err != nil {
+		return false, err
+	}
+	if ap == 0 && ca.Defaults.Port != nil && *ca.Defaults.Port != 0 {
+		ap = *ca.Defaults.Port
+	}
+
+	bh, bp, err := splitHostPort(b.Address)
+	if err != nil {
+		return false, err
+	}
+	if bp == 0 && cb.Defaults.Port != nil && *cb.Defaults.Port != 0 {
+		bp = *cb.Defaults.Port
+	}
+
+	if ah != bh {
+		log.Debugf("cmp host: %s != %s\n", ah, bh)
+		return false, nil
+	}
+	if ap != bp {
+		log.Debugf("cmp port: %d != %d\n", ap, bp)
+		return false, nil
+	}
 	// everything is equal
 	return true, nil
 }

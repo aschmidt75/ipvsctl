@@ -16,7 +16,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		found := false
 
 		for _, newService := range newconfig.Services {
-			if service.IsEqual(newService) {
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			if err != nil {
+				return res, err
+			}
+			if equal == true {
 				found = true
 			}
 		}
@@ -42,7 +46,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		found := false
 
 		for _, service := range ipvsconfig.Services {
-			if service.IsEqual(newService) {
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			if err != nil {
+				return res, err
+			}
+			if equal == true {
 				found = true
 			}
 		}
@@ -61,10 +69,25 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 	// anything differs, update it.
 	for _, service := range ipvsconfig.Services {
 		for _, newService := range newconfig.Services {
-			if service.IsEqual(newService) {
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			if err != nil {
+				return res, err
+			}
+			if equal == true {
+				newSched := newService.SchedName
+				if newSched == "" {
+					// default given?
+					if newconfig.Defaults.SchedName != nil {
+						newSched = *newconfig.Defaults.SchedName
+					}
+				}
+				if newSched == "" {
+					// still empty? rr is the primary default scheduler
+					newSched = "rr"
+				}
 
 				// same scheduler?
-				if service.SchedName != newService.SchedName {
+				if service.SchedName != newSched {
 					// no, update service
 					res.AddChange(ChangeSetItem{
 						Type:        updateService,
@@ -79,7 +102,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 				for _, destination := range service.Destinations {
 					found := false
 					for _, newDestination := range newService.Destinations {
-						if destination.Address == newDestination.Address {
+						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig,destination,newconfig,newDestination)
+						if err != nil {
+							return res, err
+						}
+						if equal == true {
 							found = true
 						}
 					}
@@ -103,7 +130,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 				for _, newDestination := range newService.Destinations {
 					found := false
 					for _, destination := range service.Destinations {
-						if destination.Address == newDestination.Address {
+						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig,destination,newconfig,newDestination)
+						if err != nil {
+							return res, err
+						}
+						if equal == true {
 							found = true
 						}
 					}

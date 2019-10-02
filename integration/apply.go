@@ -43,6 +43,35 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 			if err != nil {
 				return &IPVSApplyError{what: "unable to delete service", origErr: err}
 			}
+		case addService:
+			log.Debugf("Adding to current config: %s,%s\n", csi.Service.Address, csi.Service.SchedName)
+
+			newIPVSService, err := newconfig.NewIpvsServiceStruct(csi.Service)
+			if err != nil {
+				return &IPVSApplyError{what: "unable to add service", origErr: err}
+			}
+
+			log.Debugf("newIPVSService=%#v\n", newIPVSService)
+
+			err = ipvs.NewService(newIPVSService)
+			if err != nil {
+				return &IPVSApplyError{what: "unable to add ipvs service", origErr: err}
+			}
+
+			log.Debugf("added: %#v\n", newIPVSService)
+
+			newIPVSDestinations, err := newconfig.NewIpvsDestinationsStruct(csi.Service)
+			if err != nil {
+				return &IPVSApplyError{what: fmt.Sprintf("unable to add new destinations for service %s", csi.Service.Address), origErr: err}
+			}
+
+			for _, newIPVSDestination := range newIPVSDestinations {
+				err = ipvs.NewDestination(newIPVSService, newIPVSDestination)
+				if err != nil {
+					return &IPVSApplyError{what: fmt.Sprintf("unable to add new destination %#v for service %s", newIPVSDestination.Address, csi.Service.Address), origErr: err}
+				}
+			}
+
 		default:
 			log.Debugf("Unhandled change type %s\n", csi.Type)			
 		}
@@ -67,7 +96,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 			}
 		}
 	}
-*/
+
 	// 2: iterate through all services in newconfig. If
 	// current config does not contain the service, add it
 	for _, newService := range newconfig.Services {
@@ -109,6 +138,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 			}
 		}
 	}
+*/
 
 	// 3: iterate through all services in ipvsconfig. If
 	// newconfig does contain the service, compare it. If

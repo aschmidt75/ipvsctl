@@ -211,3 +211,20 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
     
 }
 
+@test "given any of the model files applied, when i build a changeset for the same model, it must always be empty" {
+
+    for fx in $(ls -1 fixtures/*.yaml); do
+        if [[ ! "${fx}" =~ invalid ]]; then
+            ipvsadm -C
+            $IPVSCTL apply -f $fx
+            if [[ $? -eq 0 ]]; then
+                run $IPVSCTL changeset -f $fx
+
+                [ "$status" -eq 0 ]
+                [[ "${output}" =~ ^\{\}$ ]] 
+            fi
+        fi
+    done
+    ipvsadm -C
+}
+
