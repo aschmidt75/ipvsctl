@@ -117,6 +117,9 @@ func splitHostPort(in string) (host string, port int, err error) {
 	if err != nil {
 		return "", 0, err
 	}
+
+//	log.Debugf("splitHostPort in=%s, host=%s, port=%d\n", in, a[0], int(p))
+
 	return a[0], int(p), nil
 }
 

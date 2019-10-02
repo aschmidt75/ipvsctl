@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"net"
+
 )
 
 // IPVSValidateError signal an error when validating a configuration
@@ -142,9 +143,8 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 				p = defaultPort
 			}
 			if p < 1 || p > 65535 {
-				return &IPVSValidateError{What: fmt.Sprintf("bad port (%d) for service %s", p, service.Address)}
+				return &IPVSValidateError{What: fmt.Sprintf("invalid port (%d) for destination %s in service %s.", p, destination.Address, service.Address)}
 			}
-
 			if destination.Forward == "" && defaultForward != "" {
 				destination.Forward = defaultForward
 			}

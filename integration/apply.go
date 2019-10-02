@@ -26,9 +26,31 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 	}
 	defer ipvs.Close()
 
+	// create changeset from new configuration
+	cs, err := ipvsconfig.ChangeSet(newconfig)
+	if err != nil {
+		return &IPVSApplyError{ what: "Unable to build change set from new configuration", origErr: err}
+	}
+	
+	for idx, csiIntf := range cs.Items {
+		csi := csiIntf.(ChangeSetItem)
+		log.Debug("Applying change set item #%d (%#v)\n", idx, csi)
+
+		switch csi.Type {
+		case deleteService:
+			log.Debugf("Removing service from current config: %s,%s\n", csi.Service.Address, csi.Service.SchedName)
+			err = ipvs.DelService(csi.Service.service)
+			if err != nil {
+				return &IPVSApplyError{what: "unable to delete service", origErr: err}
+			}
+		default:
+			log.Debugf("Unhandled change type %s\n", csi.Type)			
+		}
+	}
+
 	// 1: iterate through all services in ipvsconfig. If
 	// newconfig does not contain the service, remove it
-	for _, service := range ipvsconfig.Services {
+/*	for _, service := range ipvsconfig.Services {
 		found := false
 
 		for _, newService := range newconfig.Services {
@@ -45,7 +67,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 			}
 		}
 	}
-
+*/
 	// 2: iterate through all services in newconfig. If
 	// current config does not contain the service, add it
 	for _, newService := range newconfig.Services {
