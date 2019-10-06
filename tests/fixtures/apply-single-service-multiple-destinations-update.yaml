@@ -1,3 +1,5 @@
+defaults:
+  weight: 1
 services:
   - address: tcp://1.2.3.4:80
     sched: rr 

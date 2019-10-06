@@ -7,6 +7,8 @@ const (
 	exitInvalidFile   = 30
 	exitApplyErr      = 31
 	exitValidateErr   = 32
+	exitInvalidInput  = 33
+	exitSetErr        = 34
 	exitErrOutput     = 100
 	exitUnknown       = 127
 )

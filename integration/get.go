@@ -44,7 +44,7 @@ func (ipvsconfig *IPVSConfig) Get() error {
 	if err != nil {
 		return &IPVSHandleError{}
 	}
-	log.Debugf("%#v\n", ipvs)
+	log.Tracef("%#v\n", ipvs)
 	defer ipvs.Close()
 
 	return getServicesWithDestinations(ipvs, ipvsconfig)
@@ -83,7 +83,7 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 		s.Destinations = make([]*Destination, len(dests))
 
 		for idx, dest := range dests {
-			log.Debugf("%d -> %#v\n", idx, *dest)
+			log.Trace("%d -> %#v\n", idx, *dest)
 
 			s.Destinations[idx] = &Destination{
 				Address:     MakeAdressStringFromIpvsDestination(dest),
@@ -121,7 +121,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 	if err != nil {
 		return &IPVSQueryError{what: "services"}
 	}
-	log.Debugf("%#v\n", services)
+	log.Tracef("%#v\n", services)
 	if services != nil && len(services) > 0 {
 		res.Services = make([]*Service, len(services))
 
@@ -131,7 +131,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 				return &IPVSQueryError{what: "service"}
 			}
 
-			log.Debugf("%d -> %#v\n", idx, *service)
+			log.Tracef("%d -> %#v\n", idx, *service)
 
 			var adrStr = MakeAdressStringFromIpvsService(service)
 			res.Services[idx] = &Service{

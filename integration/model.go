@@ -116,8 +116,6 @@ func splitHostPort(in string) (host string, port int, err error) {
 		return "", 0, err
 	}
 
-//	log.Debugf("splitHostPort in=%s, host=%s, port=%d\n", in, a[0], int(p))
-
 	return a[0], int(p), nil
 }
 
@@ -146,42 +144,6 @@ func splitCompoundAddress(in string) (procotol, addressPart string, port, fwmark
 	}
 
 	return proto, host, port, 0, nil
-}
-
-// NewIpvsServiceStruct creates a new ipvs.service struct from model integration.Service
-func (s *Service) NewIpvsServiceStruct() (*ipvs.Service, error) {
-	proto, host, port, fwmark, err := splitCompoundAddress(s.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	var protoAsNum uint16
-	switch proto {
-	case "tcp":
-		protoAsNum = 6
-	case "udp":
-		protoAsNum = 17
-	case "sctp":
-		protoAsNum = 132
-	}
-
-	schedName := s.SchedName
-	if schedName == "" {
-		schedName = "rr"
-	}
-
-	res := &ipvs.Service{
-		Protocol:      protoAsNum,
-		Address:       net.ParseIP(host),
-		Port:          uint16(port),
-		FWMark:        uint32(fwmark),
-		AddressFamily: syscall.AF_INET,
-		SchedName:     schedName,
-		PEName:        "",
-		Netmask:       0xffffffff,
-	}
-
-	return res, nil
 }
 
 // NewIpvsServiceStruct creates a new ipvs.service struct from model integration.Service
@@ -227,52 +189,6 @@ func (c *IPVSConfig) NewIpvsServiceStruct(s *Service) (*ipvs.Service, error) {
 	}
 
 	return res, nil
-}
-
-// NewIpvsDestinationsStruct creates a new ipvs.Destination struct array from model integration.Service
-func (s *Service) NewIpvsDestinationsStruct() ([]*ipvs.Destination, error) {
-	res := make([]*ipvs.Destination, len(s.Destinations))
-
-	for idx, destination := range s.Destinations {
-		var err error
-		res[idx], err = destination.NewIpvsDestinationStruct()
-		if err != nil {
-			return nil, err
-		}
-	}
-
-	return res, nil
-}
-
-// NewIpvsDestinationStruct creates a single new ipvs.Destination struct from model integration.Service
-func (destination *Destination) NewIpvsDestinationStruct() (*ipvs.Destination, error) {
-	h, p, err := splitHostPort(destination.Address)
-	if err != nil {
-		return nil, err
-	}
-
-	var cf uint32
-	switch destination.Forward {
-	case "direct":
-		cf = 0x3
-	case "tunnel":
-		cf = 0x2
-	case "nat":
-		cf = 0x0
-	default:
-		return nil, errors.New("bad forward. Must be one of direct, tunnel or nat")
-	}
-
-	w := destination.Weight
-	if w <= 0 || w > 65535 {
-		w = 1
-	}
-	return &ipvs.Destination{
-		Address:         net.ParseIP(h),
-		Port:            uint16(p),
-		ConnectionFlags: cf,
-		Weight:          w,
-	}, nil
 }
 
 // NewIpvsDestinationsStruct creates a new ipvs.Destination struct array from model integration.Service
@@ -326,7 +242,7 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 			w = *c.Defaults.Weight
 		}
 	}
-	if w <= 0 || w > 65535 {
+	if w < 0 || w > 65535 {
 		w = 1
 	}
 	return &ipvs.Destination{
@@ -365,7 +281,6 @@ func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Serv
 		bf = "rr"
 	}
 	if af != bf {
-		//log.Debugf("cmp sched: %s != %s\n", af, bf)
 		return false, nil
 	}
 
@@ -393,20 +308,16 @@ func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConf
 	}
 
 	if afwm != 0 && bfwm != 0 && afwm != bfwm {
-		//log.Debugf("cmp fwm: %d != %d\n", afwm, bfwm)
 		// both use fwmark, but different one
 		return false, nil
 	}
 	if apr != bpr {
-		//log.Debugf("cmp proto: %s != %s\n", apr, bpr)
 		return false, nil
 	}
 	if ah != bh {
-		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 
@@ -435,11 +346,9 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	}
 
 	if ah != bh {
-		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 
@@ -453,7 +362,6 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		bf = *cb.Defaults.Forward
 	}
 	if af != bf {
-		//log.Debugf("cmp forward: %s != %s\n", af, bf)
 		return false, nil
 	}
 
@@ -475,7 +383,6 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	}
 
 	if aw != bw {
-		//log.Debugf("cmp weight: %d != %d\n", aw, bw)
 		return false, nil
 	}
 
@@ -504,14 +411,43 @@ func CompareDestinationIdentifyingEquality(ca *IPVSConfig, a *Destination, cb *I
 	}
 
 	if ah != bh {
-		//log.Debugf("cmp host: %s != %s\n", ah, bh)
 		return false, nil
 	}
 	if ap != bp {
-		//log.Debugf("cmp port: %d != %d\n", ap, bp)
 		return false, nil
 	}
 	// everything is equal
 	return true, nil
 }
 
+func (ipvs *IPVSConfig) LocateServiceAndDestination(serviceHandle, destinationHandle string) (*Service, *Destination) {
+	var s *Service = nil
+	var d *Destination = nil
+
+	for _, service := range ipvs.Services {
+		if service.service == nil {
+			continue
+		}
+		a := MakeAdressStringFromIpvsService(service.service)
+
+		if a == serviceHandle {
+			s = service
+
+			// 
+			for _, destination := range service.Destinations {
+				if destination.destination == nil {
+					continue
+				}
+				b := MakeAdressStringFromIpvsDestination(destination.destination)
+				if b == destinationHandle {
+					d = destination
+					break
+				}
+			}
+
+			break
+		}
+	}
+
+	return s, d
+}

@@ -25,7 +25,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 			}
 		}
 
-		log.Debugf("Found=%d, activeService=%s in new config\n", found, service.Address)
+		log.Tracef("Found=%d, activeService=%s in new config\n", found, service.Address)
 
 		if found == false {
 			res.AddChange(ChangeSetItem{

@@ -6,7 +6,6 @@ import (
 
 	"gopkg.in/yaml.v2"
 
-	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
 )
@@ -25,21 +24,6 @@ func ChangeSet(cmd *cli.Cmd) {
 			os.Exit(exitInvalidFile)
 		}
 
-		// retrieve current config
-		currentConfig := &integration.IPVSConfig{}
-		err := currentConfig.Get()
-		if err != nil {
-			log.Error(err)
-
-			if _, ok := err.(*integration.IPVSHandleError); ok {
-				os.Exit(exitIpvsErrHandle)
-			}
-			if _, ok := err.(*integration.IPVSQueryError); ok {
-				os.Exit(exitIpvsErrQuery)
-			}
-			os.Exit(exitUnknown)
-		}
-
 		// read new config from file
 		newConfig, err := readModelFromInput(csFile)
 		if err != nil {
@@ -56,7 +40,7 @@ func ChangeSet(cmd *cli.Cmd) {
 		}
 
 		// create changeset from new configuration
-		cs, err := currentConfig.ChangeSet(newConfig)
+		cs, err := MustGetCurrentConfig().ChangeSet(newConfig)
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitApplyErr)
