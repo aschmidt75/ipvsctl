@@ -56,13 +56,13 @@ type ChangeSet struct {
 type ChangeSetItemType string
 
 const (
-	addService    ChangeSetItemType = "add-service"
-	updateService ChangeSetItemType = "update-service"
-	deleteService ChangeSetItemType = "delete-service"
+	AddService    ChangeSetItemType = "add-service"
+	UpdateService ChangeSetItemType = "update-service"
+	DeleteService ChangeSetItemType = "delete-service"
 
-	addDestination    ChangeSetItemType = "add-destination"
-	updateDestination ChangeSetItemType = "update-destination"
-	deleteDestination ChangeSetItemType = "delete-destination"
+	AddDestination    ChangeSetItemType = "add-destination"
+	UpdateDestination ChangeSetItemType = "update-destination"
+	DeleteDestination ChangeSetItemType = "delete-destination"
 )
 
 // ChangeSetItem ...

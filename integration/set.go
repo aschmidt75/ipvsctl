@@ -3,6 +3,7 @@ package integration
 import (
 	"fmt"
 	"time"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -13,13 +14,16 @@ type IPVSetError struct {
 }
 
 func (e *IPVSetError) Error() string {
+	if e.origErr == nil {
+		return fmt.Sprintf("Unable to set new value: %s", e.what)
+	}
 	return fmt.Sprintf("Unable to set new value: %s\nReason: %s", e.what, e.origErr)
 }
 
 // SetWeight sets the destination's weight to newWeight
 func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, newWeight int) error {
 	log.WithFields(log.Fields{
-		"service": serviceName,
+		"service":     serviceName,
 		"destination": destinationName,
 	}).Debugf("Locating")
 	s, d := ipvsconfig.LocateServiceAndDestination(serviceName, destinationName)
@@ -40,8 +44,8 @@ func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, new
 	// create changeset
 	cs := NewChangeSet()
 	cs.AddChange(ChangeSetItem{
-		Type: "update-destination",
-		Service: s,
+		Type:        UpdateDestination,
+		Service:     s,
 		Destination: d,
 	})
 
@@ -49,23 +53,23 @@ func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, new
 
 	err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs)
 	if err == nil {
-		log.Infof("Updated weight to %d for service %s/%s", d.Weight, s.Address, d.Address)
+		log.Infof("Updated weight to %d for %s/%s", d.Weight, s.Address, d.Address)
 	}
 	return err
 }
 
 const (
 	ControlAdvance = 1
-	ControlExit = 2
-	ControlFinish = 3
+	ControlExit    = 2
+	ControlFinish  = 3
 )
 
 type ContinousControlCh chan int
 
 func (ipvsconfig *IPVSConfig) SetWeightContinuous(
-	serviceName, destinationName string, 
-	toWeight int, 
-	amountOfTimeSecs int, 
+	serviceName, destinationName string,
+	toWeight int,
+	amountOfTimeSecs int,
 	cch ContinousControlCh) error {
 
 	if amountOfTimeSecs <= 1 {
@@ -73,7 +77,7 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 	}
 
 	log.WithFields(log.Fields{
-		"service": serviceName,
+		"service":     serviceName,
 		"destination": destinationName,
 	}).Debugf("Locating")
 	s, d := ipvsconfig.LocateServiceAndDestination(serviceName, destinationName)
@@ -91,8 +95,8 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 	fromWeight := d.Weight
 	cs := NewChangeSet()
 	cs.AddChange(ChangeSetItem{
-		Type: "update-destination",
-		Service: s,
+		Type:        UpdateDestination,
+		Service:     s,
 		Destination: d,
 	})
 
@@ -117,25 +121,25 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 				if percElapsed >= 1 {
 					percElapsed = 1
 				}
-				d.Weight = int(float64(fromWeight)+float64(toWeight-fromWeight)*percElapsed)
-	
+				d.Weight = int(float64(fromWeight) + float64(toWeight-fromWeight)*percElapsed)
+
 				log.WithFields(log.Fields{
 					"t": timeElapsed,
 					"p": percElapsed,
-					"w": d.Weight,	
+					"w": d.Weight,
 				}).Trace("calculate distance")
-			
+
 				err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs)
 				if err != nil {
 					return err
 				}
 				log.WithField("changeset", cs).Trace("applying changeset.")
 				log.WithFields(log.Fields{
-					"weight": d.Weight,
-					"elapsed%": percElapsed,
-				}).Debug("Updated weight")
-	
-			}					
+					"weight":   d.Weight,
+					"elapsed%": int(100 * percElapsed),
+				}).Info("Updated weight")
+
+			}
 		}
 	}
 }

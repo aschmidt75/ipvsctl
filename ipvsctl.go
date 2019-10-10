@@ -12,9 +12,9 @@ import (
 func main() {
 	c := config.Config()
 
-	app := cli.App("ipvsctl", "...")
+	app := cli.App("ipvsctl", "A desired state configuration frontend for ipvs")
 
-	app.Version("version", "0.0.1")
+	app.Version("version", "0.1.0")
 
 	app.Spec = "[-d] [-v]"
 

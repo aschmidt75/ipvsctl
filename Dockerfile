@@ -11,13 +11,13 @@ WORKDIR /build
 COPY . .
 RUN go mod download
 
-RUN CGO_ENABLED=0 go build -i -v -o release/fm -ldflags="-X main.version=0.1" cmd/*.go
+RUN CGO_ENABLED=0 go build -i -v -o release/ipvsctl -ldflags="-X main.version=0.1" *.go
 
 
 FROM scratch
 COPY --from=gobuilder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=gobuilder /etc/passwd /etc/passwd
-COPY --chown=990:990 --from=gobuilder /build/release/fm /app
+COPY --chown=990:990 --from=gobuilder /build/release/ipvsctl /app
 
 USER 990:990
 ENTRYPOINT ["./app"]

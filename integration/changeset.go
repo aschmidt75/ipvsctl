@@ -16,7 +16,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		found := false
 
 		for _, newService := range newconfig.Services {
-			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig, service, newconfig, newService)
 			if err != nil {
 				return res, err
 			}
@@ -25,11 +25,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 			}
 		}
 
-		log.Tracef("Found=%d, activeService=%s in new config\n", found, service.Address)
+		log.Tracef("Found=%t, activeService=%s in new config\n", found, service.Address)
 
 		if found == false {
 			res.AddChange(ChangeSetItem{
-				Type: deleteService,
+				Type: DeleteService,
 				Service: &Service{
 					Address: MakeAdressStringFromIpvsService(service.service),
 					service: service.service,
@@ -46,7 +46,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		found := false
 
 		for _, service := range ipvsconfig.Services {
-			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig, service, newconfig, newService)
 			if err != nil {
 				return res, err
 			}
@@ -57,7 +57,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 
 		if found == false {
 			res.AddChange(ChangeSetItem{
-				Type:        addService,
+				Type:        AddService,
 				Service:     newService,
 				Destination: nil,
 			})
@@ -69,7 +69,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 	// anything differs, update it.
 	for _, service := range ipvsconfig.Services {
 		for _, newService := range newconfig.Services {
-			equal, err := CompareServicesIdentifyingEquality(ipvsconfig,service,newconfig,newService)
+			equal, err := CompareServicesIdentifyingEquality(ipvsconfig, service, newconfig, newService)
 			if err != nil {
 				return res, err
 			}
@@ -90,7 +90,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 				if service.SchedName != newSched {
 					// no, update service
 					res.AddChange(ChangeSetItem{
-						Type:        updateService,
+						Type:        UpdateService,
 						Service:     newService,
 						Destination: nil,
 					})
@@ -102,7 +102,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 				for _, destination := range service.Destinations {
 					found := false
 					for _, newDestination := range newService.Destinations {
-						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig,destination,newconfig,newDestination)
+						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig, destination, newconfig, newDestination)
 						if err != nil {
 							return res, err
 						}
@@ -113,7 +113,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 
 					if found == false {
 						res.AddChange(ChangeSetItem{
-							Type: deleteDestination,
+							Type: DeleteDestination,
 							Destination: &Destination{
 								Address:     MakeAdressStringFromIpvsDestination(destination.destination),
 								destination: destination.destination,
@@ -130,7 +130,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 				for _, newDestination := range newService.Destinations {
 					found := false
 					for _, destination := range service.Destinations {
-						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig,destination,newconfig,newDestination)
+						equal, err := CompareDestinationIdentifyingEquality(ipvsconfig, destination, newconfig, newDestination)
 						if err != nil {
 							return res, err
 						}
@@ -140,7 +140,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 					}
 					if found == false {
 						res.AddChange(ChangeSetItem{
-							Type:        addDestination,
+							Type:        AddDestination,
 							Destination: newDestination,
 							Service: &Service{
 								Address: MakeAdressStringFromIpvsService(service.service),
@@ -163,7 +163,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 							if equal == false {
 
 								res.AddChange(ChangeSetItem{
-									Type:        updateDestination,
+									Type:        UpdateDestination,
 									Destination: newDestination,
 									Service: &Service{
 										Address: MakeAdressStringFromIpvsService(service.service),

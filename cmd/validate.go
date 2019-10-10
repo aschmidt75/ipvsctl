@@ -1,7 +1,6 @@
 package cmd
 
 import (
-	"fmt"
 	"os"
 
 	integration "github.com/aschmidt75/ipvsctl/integration"
@@ -36,11 +35,11 @@ func Validate(cmd *cli.Cmd) {
 		err = c.Validate()
 		if err != nil {
 			e := err.(*integration.IPVSValidateError)
-			fmt.Printf("Configuration contains errors: %s\n", e.What)
+			log.Error(e)
 			os.Exit(exitValidateErr)
 		}
 
-		fmt.Println("Configuration valid.")
+		log.Info("Configuration valid.")
 		os.Exit(exitOk)
 	}
 }

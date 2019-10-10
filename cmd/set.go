@@ -52,7 +52,7 @@ func SetWeight(cmd *cli.Cmd) {
 
 			go func(){
 				t := 0
-				for t <= *timeSecs {
+				for t < *timeSecs {
 					t = t+1
 					time.Sleep(1*time.Second)
 					ch <- integration.ControlAdvance

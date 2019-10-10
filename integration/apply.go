@@ -14,6 +14,9 @@ type IPVSApplyError struct {
 }
 
 func (e *IPVSApplyError) Error() string {
+	if e.origErr == nil {
+		return fmt.Sprintf("Unable to apply new config: %s", e.what)
+	}
 	return fmt.Sprintf("Unable to apply new config: %s\nReason: %s", e.what, e.origErr)
 }
 
@@ -42,17 +45,27 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 
 	for idx, csiIntf := range cs.Items {
 		csi := csiIntf.(ChangeSetItem)
-		log.Tracef("Applying change set item #%d (%#v)\n", idx, csi)
+		log.WithFields(log.Fields{
+			"idx": idx, 
+			"csi": csi,
+		}).Tracef("Applying change set item")
 
 		switch csi.Type {
-		case deleteService:
-			log.Tracef("Removing service from current config: %s,%s\n", csi.Service.Address, csi.Service.SchedName)
+		case DeleteService:
+			log.WithFields(log.Fields{
+				"addr": csi.Service.Address, 
+				"sched": csi.Service.SchedName,
+			}).Tracef("Removing service from current config")
+
 			err = ipvs.DelService(csi.Service.service)
 			if err != nil {
 				return &IPVSApplyError{what: "unable to delete service", origErr: err}
 			}
-		case addService:
-			log.Tracef("Adding to current config: %s,%s\n", csi.Service.Address, csi.Service.SchedName)
+		case AddService:
+			log.WithFields(log.Fields{
+				"addr": csi.Service.Address, 
+				"sched": csi.Service.SchedName,
+			}).Tracef("Adding to current config")
 
 			newIPVSService, err := newconfig.NewIpvsServiceStruct(csi.Service)
 			if err != nil {
@@ -66,7 +79,9 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 				return &IPVSApplyError{what: "unable to add ipvs service", origErr: err}
 			}
 
-			log.Tracef("added: %#v\n", newIPVSService)
+			log.WithFields(log.Fields{
+				"ipvssvc": newIPVSService, 
+			}).Tracef("added")
 
 			newIPVSDestinations, err := newconfig.NewIpvsDestinationsStruct(csi.Service)
 			if err != nil {
@@ -79,8 +94,10 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 					return &IPVSApplyError{what: fmt.Sprintf("unable to add new destination %#v for service %s", newIPVSDestination.Address, csi.Service.Address), origErr: err}
 				}
 			}
-		case updateService:
-			log.Tracef("Updating service: %s\n", csi.Service.Address)
+		case UpdateService:
+			log.WithFields(log.Fields{
+				"addr": csi.Service.Address, 
+			}).Tracef("Updating service")
 
 			newIPVSService, err := newconfig.NewIpvsServiceStruct(csi.Service)
 			if err != nil {
@@ -93,8 +110,12 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 			}
 			log.Tracef("edited service: %#v\n", newIPVSService)
 			
-		case addDestination:
-			log.Tracef("Adding destination to current config: %s to %s\n", csi.Destination.Address, csi.Service.Address)
+		case AddDestination:
+			log.WithFields(log.Fields{
+				"dst-addr": csi.Destination.Address, 
+				"dst": csi.Destination,
+				"svc-addr": csi.Service.Address,
+			}).Tracef("Adding destination to current config")
 
 			newIPVSDestination, err := newconfig.NewIpvsDestinationStruct(csi.Destination)
 			if err != nil {
@@ -105,16 +126,24 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 				return &IPVSApplyError{what: fmt.Sprintf("unable to add new destination %#v for service %s", newIPVSDestination.Address, csi.Service.Address), origErr: err}
 			}
 
-		case deleteDestination:
-			log.Tracef("Removing destination from current config: %s\n", csi.Destination.Address)
+		case DeleteDestination:
+			log.WithFields(log.Fields{
+				"dst-addr": csi.Destination.Address, 
+				"dst": csi.Destination,
+				"svc-addr": csi.Service.Address,
+			}).Tracef("Removing destination from current config")
+
 			err = ipvs.DelDestination(csi.Service.service, csi.Destination.destination)
 			if err != nil {
-				return &IPVSApplyError{what: fmt.Sprintf("unable to delete destination %#s for service %s", csi.Destination.Address, csi.Service.Address), origErr: err}
+				return &IPVSApplyError{what: fmt.Sprintf("unable to delete destination %s for service %s", csi.Destination.Address, csi.Service.Address), origErr: err}
 			}
 
-		case updateDestination:
-			log.Tracef("Updating destination: %s\n", csi.Destination.Address)
-			log.Tracef("Updating destination: %#v\n", csi.Destination)
+		case UpdateDestination:
+			log.WithFields(log.Fields{
+				"dst-addr": csi.Destination.Address, 
+				"dst": csi.Destination,
+				"svc-addr": csi.Service.Address,
+			}).Tracef("Updating destination")
 
 			updateIPVSDestination, err := newconfig.NewIpvsDestinationStruct(csi.Destination)
 			if err != nil {
@@ -127,7 +156,7 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 			}
 
 		default:
-			log.Tracef("Unhandled change type %s\n", csi.Type)			
+			log.WithField("type", csi.Type).Tracef("Unhandled change type")			
 		}
 	}
 

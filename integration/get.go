@@ -83,7 +83,10 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 		s.Destinations = make([]*Destination, len(dests))
 
 		for idx, dest := range dests {
-			log.Trace("%d -> %#v\n", idx, *dest)
+			log.WithFields(log.Fields{
+				"idx": idx, 
+				"dest": *dest,
+			}).Trace("processing")
 
 			s.Destinations[idx] = &Destination{
 				Address:     MakeAdressStringFromIpvsDestination(dest),
