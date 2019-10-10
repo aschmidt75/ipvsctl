@@ -46,7 +46,7 @@ TCP  10.1.2.3:80 rr
 
 ## Build
 
-This project builds correctly on Linux only.
+This project builds correctly for Linux only.
 
 ```bash
 $ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
