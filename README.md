@@ -3,6 +3,18 @@
 `ipvsctl` is a command line frontend for IPVS using desired state configuration. It reads an IPVS services/destinations model from a YAML file, detects changes to the current configuration and applies those changes. 
 It is meant as an add-on to mipvsadm, where changes can be applied from models instead of ad-hoc commands.
 
+## Features
+
+* Adding, Updating and Deleting services and destinations using YAML models
+* Services using TCP,UDP,SCTP and FWMARK
+* All schedulers, all forwards
+* Setting Weights on destinations
+
+Currently not supported
+
+* IPv6 addresses are not yet supported
+* Timeouts, Netmasks, Scheduling flags, Statistics, Thresholds are not supported yet
+
 ## Example
 
 ```
@@ -36,13 +48,21 @@ Prot LocalAddress:Port Scheduler Flags
 TCP  10.1.2.3:80 rr
   -> 10.50.0.1:8080               Masq    0      0          0
   -> 10.50.0.2:8080               Masq    0      0          0    
+
+# ipvsctl -v set weight 100 --service tcp://10.1.2.3:80 --destination 10.50.0.1:8080
+INFO Updated weight to 100 for service tcp://10.1.2.3:80/10.50.0.1:8080
+
+# ipvsadm -Ln
+[...]
+  -> 10.50.0.1:8080               Masq    100    0          0
+  -> 10.50.0.2:8080               Masq    0      0          0
 ```
 
 ## Prerequisites
 
-* go 1.12
+* go 1.13
 * Linux
-* ipvs kernel module installed
+* ipvs kernel modules installed and loaded
 
 ## Build
 
