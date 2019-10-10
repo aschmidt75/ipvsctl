@@ -1,0 +1,4 @@
+services:
+  - address: tcp://${some.ip}:${some.port}
+    destinations:
+    - address: ${some.ip}:1000

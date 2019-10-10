@@ -9,6 +9,9 @@ const (
 	exitValidateErr   = 32
 	exitInvalidInput  = 33
 	exitSetErr        = 34
+	exitParamErr      = 35
+	exitNetErr        = 50
+	exitFileErr       = 51
 	exitErrOutput     = 100
 	exitUnknown       = 127
 )

@@ -9,6 +9,7 @@ It is meant as an add-on to mipvsadm, where changes can be applied from models i
 * Services using TCP,UDP,SCTP and FWMARK
 * All schedulers, all forwards
 * Setting Weights on destinations
+* Setting addresses from dynamic parameters (e.g. from environment, files, uris.)
 
 Currently not supported
 
@@ -20,7 +21,7 @@ Currently not supported
 ```
 # cat >/tmp/ipvsconf <<EOF
 services:
-- address: tcp://10.1.2.3:80
+- address: tcp://${host.eth0}:80
   sched: rr
   destinations:
   - address: 10.50.0.1:8080
@@ -87,6 +88,7 @@ To run the tests, build ipvsctl using the above command, install the necessary p
 * enable ipvs
 * install ipvsadm
 * install bats
+* docker is necessary for testing parameter file pulls from URIs
 
 Test cases can be run like this:
 
@@ -97,7 +99,7 @@ $ bats .
  ✓ given a configuration with defaults, when i apply it, all default port values must have been set correctly.
  ✓ given a configuration with defaults, when i apply it, all default scheduler values must have been set correctly.
 [...]
-48 tests, 0 failures
+60 tests, 0 failures
 ```
 
 ## License

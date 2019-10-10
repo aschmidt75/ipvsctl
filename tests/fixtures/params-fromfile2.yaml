@@ -1,0 +1,2 @@
+services:
+  - address: tcp://${some.more.first}.${some.more.second}.1.2:1000
