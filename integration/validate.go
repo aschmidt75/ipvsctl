@@ -3,7 +3,6 @@ package integration
 import (
 	"fmt"
 	"net"
-
 )
 
 // IPVSValidateError signal an error when validating a configuration
@@ -67,10 +66,19 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 		defaultForward = *ipvsconfig.Defaults.Forward
 	}
 
+	serviceMap := make(map[string]bool)
+
 	for _, service := range ipvsconfig.Services {
 		if service.Address == "" {
 			return &IPVSValidateError{What: fmt.Sprintf("Service address may not be empty")}
 		}
+
+		//
+		_, ex := serviceMap[service.Address]
+		if ex {
+			return &IPVSValidateError{What: fmt.Sprintf("Service addresses must be unique: %s", service.Address)}
+		}
+		serviceMap[service.Address] = true
 
 		//proto, adrpart, port, fwmark, err
 		_, adrpart, _, fwmark, err := splitCompoundAddress(service.Address)
@@ -125,10 +133,18 @@ func (ipvsconfig *IPVSConfig) Validate() error {
 		}
 
 		// check destination addresses
+		destinationMap := make(map[string]bool)
+
 		for _, destination := range service.Destinations {
 			if destination.Address == "" {
 				return &IPVSValidateError{What: fmt.Sprintf("Destination address may not be empty for service %s", service.Address)}
 			}
+
+			_, ex := destinationMap[destination.Address]
+			if ex {
+				return &IPVSValidateError{What: fmt.Sprintf("Destination addresses must be unique per service: %s in service %s", destination.Address, service.Address)}
+			}
+			destinationMap[destination.Address] = true
 
 			h, p, err := splitHostPort(destination.Address)
 			if err != nil {

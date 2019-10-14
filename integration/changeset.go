@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"fmt"
+
 	log "github.com/sirupsen/logrus"
 )
 
@@ -28,10 +30,12 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		log.Tracef("Found=%t, activeService=%s in new config\n", found, service.Address)
 
 		if found == false {
+			adr := MakeAdressStringFromIpvsService(service.service)
 			res.AddChange(ChangeSetItem{
-				Type: DeleteService,
+				Type:        DeleteService,
+				Description: fmt.Sprintf("Delete existing service %s because it does not exist in updated model any more", adr),
 				Service: &Service{
-					Address: MakeAdressStringFromIpvsService(service.service),
+					Address: adr,
 					service: service.service,
 				},
 				Destination: nil,
@@ -58,6 +62,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 		if found == false {
 			res.AddChange(ChangeSetItem{
 				Type:        AddService,
+				Description: fmt.Sprintf("Adding new service %s because it does not yet exist", newService.Address),
 				Service:     newService,
 				Destination: nil,
 			})
@@ -91,6 +96,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 					// no, update service
 					res.AddChange(ChangeSetItem{
 						Type:        UpdateService,
+						Description: fmt.Sprintf("Updating existing service %s because details have changed", newService.Address),
 						Service:     newService,
 						Destination: nil,
 					})
@@ -112,14 +118,17 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 					}
 
 					if found == false {
+						adrDestination := MakeAdressStringFromIpvsDestination(destination.destination)
+						adrService := MakeAdressStringFromIpvsService(service.service)
 						res.AddChange(ChangeSetItem{
-							Type: DeleteDestination,
+							Type:        DeleteDestination,
+							Description: fmt.Sprintf("Delete existing destination %s in service %s because it does not exist in updated model any more", adrDestination, adrService),
 							Destination: &Destination{
-								Address:     MakeAdressStringFromIpvsDestination(destination.destination),
+								Address:     adrService,
 								destination: destination.destination,
 							},
 							Service: &Service{
-								Address: MakeAdressStringFromIpvsService(service.service),
+								Address: adrDestination,
 								service: service.service,
 							},
 						})
@@ -139,11 +148,13 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 						}
 					}
 					if found == false {
+						adrService := MakeAdressStringFromIpvsService(service.service)
 						res.AddChange(ChangeSetItem{
 							Type:        AddDestination,
+							Description: fmt.Sprintf("Adding new destination %s to service %s because it does not yet exist", newDestination.Address, adrService),
 							Destination: newDestination,
 							Service: &Service{
-								Address: MakeAdressStringFromIpvsService(service.service),
+								Address: adrService,
 								service: service.service,
 							},
 						})
@@ -161,12 +172,14 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 								return res, err
 							}
 							if equal == false {
+								adrService := MakeAdressStringFromIpvsService(service.service)
 
 								res.AddChange(ChangeSetItem{
 									Type:        UpdateDestination,
+									Description: fmt.Sprintf("Updating existing destination %s in service %s because details have changed", newDestination.Address, adrService),
 									Destination: newDestination,
 									Service: &Service{
-										Address: MakeAdressStringFromIpvsService(service.service),
+										Address: adrService,
 										service: service.service,
 									},
 								})

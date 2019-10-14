@@ -56,18 +56,29 @@ type ChangeSet struct {
 type ChangeSetItemType string
 
 const (
+	// AddService adds a new service 
 	AddService    ChangeSetItemType = "add-service"
+
+	// UpdateService edits an existing service
 	UpdateService ChangeSetItemType = "update-service"
+
+	// DeleteService deletes an existing service
 	DeleteService ChangeSetItemType = "delete-service"
 
+	// AddDestination adds a new destination to an existing service
 	AddDestination    ChangeSetItemType = "add-destination"
+
+	// UpdateDestination edits an existing destination
 	UpdateDestination ChangeSetItemType = "update-destination"
+
+	// DeleteDestination deletes an existing destination
 	DeleteDestination ChangeSetItemType = "delete-destination"
 )
 
 // ChangeSetItem ...
 type ChangeSetItem struct {
 	Type        ChangeSetItemType `yaml:"type"`
+	Description string
 	Service     *Service          `yaml:"service,omitempty"`
 	Destination *Destination      `yaml:"destination,omitempty"`
 }

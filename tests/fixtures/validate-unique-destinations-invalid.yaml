@@ -1,0 +1,13 @@
+services:
+  - address: tcp://1.2.3.4:80
+    sched: rr 
+    destinations: 
+    - address: 10.0.0.1:80
+      forward: direct
+      weight: 1
+    - address: 10.0.0.2:80
+      forward: direct
+      weight: 2
+    - address: 10.0.0.2:80
+      forward: direct
+      weight: 3      

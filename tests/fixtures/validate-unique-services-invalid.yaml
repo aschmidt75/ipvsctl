@@ -1,0 +1,4 @@
+services:
+  - address: tcp://10.99.0.1:80
+  - address: tcp://10.99.0.2:80
+  - address: tcp://10.99.0.2:80

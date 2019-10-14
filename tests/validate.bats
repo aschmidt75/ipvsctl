@@ -134,3 +134,17 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 
 	[[ "$status" -ne 0 ]]
 }
+
+@test "given a model with non-unique service(s), when i validate it, it should fail" {
+	run $IPVSCTL validate -f fixtures/validate-unique-services-invalid.yaml
+
+	[ "$status" -ne 0 ]
+
+}
+
+@test "given a model with non-unique destination(s), when i validate it, it should fail" {
+	run $IPVSCTL validate -f fixtures/validate-unique-destinations-invalid.yaml
+
+	[ "$status" -ne 0 ]
+
+}
