@@ -1,0 +1,2 @@
+services:
+  - address: tcp://${host.lo}:12345

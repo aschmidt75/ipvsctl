@@ -17,7 +17,7 @@ func Validate(cmd *cli.Cmd) {
 
 	cmd.Action = func() {
 
-		log.Debugf("Using file=%s\n", *filename)
+		log.WithField("file", *filename).Tracef("Using file")
 		if *filename == "" {
 			log.Errorf("Must specify an input file")
 			os.Exit(exitInvalidFile)
@@ -29,10 +29,14 @@ func Validate(cmd *cli.Cmd) {
 			os.Exit(exitValidateErr)
 		}
 
-		log.Debugf("validateConfig=%#v\n", c)
+		cr, err := resolveParams(c)
+		if err != nil {
+			log.Error(err)
+			os.Exit(exitParamErr)
+		}
 
 		//
-		err = c.Validate()
+		err = cr.Validate()
 		if err != nil {
 			e := err.(*integration.IPVSValidateError)
 			log.Error(e)
