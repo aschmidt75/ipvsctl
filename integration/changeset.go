@@ -27,7 +27,10 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 			}
 		}
 
-		log.Tracef("Found=%t, activeService=%s in new config\n", found, service.Address)
+		log.WithFields(log.Fields{
+			"ex":            found,
+			"activeService": service.Address,
+		}).Tracef("In new config")
 
 		if found == false {
 			adr := MakeAdressStringFromIpvsService(service.service)

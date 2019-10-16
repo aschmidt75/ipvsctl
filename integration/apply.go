@@ -7,6 +7,32 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+// ApplyActionType is a mapped string to some action for the apply function
+type ApplyActionType string
+
+// ApplyActions maps actions to bools
+type ApplyActions map[ApplyActionType]bool
+
+const (
+	// ApplyActionAddService allows the addition of new services
+	ApplyActionAddService ApplyActionType = "as"
+
+	// ApplyActionUpdateService allows the update of existing services
+	ApplyActionUpdateService ApplyActionType = "us"
+
+	// ApplyActionDeleteService allows deletion of existing services
+	ApplyActionDeleteService ApplyActionType = "ds"
+
+	// ApplyActionAddDestination allows the addition of new destinations to existing services
+	ApplyActionAddDestination ApplyActionType = "ad"
+
+	// ApplyActionUpdateDestination allows for updates of existing destinations
+	ApplyActionUpdateDestination ApplyActionType = "ud"
+
+	// ApplyActionDeleteDestination allows for deleting of existing destinations
+	ApplyActionDeleteDestination ApplyActionType = "dd"
+)
+
 // IPVSApplyError signal an error when applying a new configuration
 type IPVSApplyError struct {
 	what    string
@@ -22,7 +48,7 @@ func (e *IPVSApplyError) Error() string {
 
 // Apply compares new config to current config, builds a changeset and
 // applies the change set items within.
-func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
+func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig, allowedActions ApplyActions) error {
 
 	// create changeset from new configuration
 	cs, err := ipvsconfig.ChangeSet(newconfig)
@@ -30,18 +56,71 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
 		return &IPVSApplyError{ what: "Unable to build change set from new configuration", origErr: err}
 	}
 
-	return ipvsconfig.ApplyChangeSet(newconfig, cs)
+	log.WithField("changeset", cs).Debug("Applying changeset")
+
+	return ipvsconfig.ApplyChangeSet(newconfig, cs, allowedActions)
 }
 
 // ApplyChangeSet takes a chhange set and applies all change items to
 // the given IPVSConfig 
-func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSet) error {
+func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSet, allowedActions ApplyActions) error {
 
 	ipvs, err := ipvs.New("")
 	if err != nil {
 		return &IPVSHandleError{}
 	}
 	defer ipvs.Close()
+
+	// check before hand wether all change set items are covered within allowedActions
+	for idx, csiIntf := range cs.Items {
+		csi := csiIntf.(ChangeSetItem)
+		log.WithFields(log.Fields{
+			"idx": idx, 
+			"csi": csi,
+		}).Tracef("Checking change set item")
+
+		switch csi.Type {
+		case DeleteService:
+			allowed, found := allowedActions[ApplyActionDeleteService]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to delete a service"}
+			}
+		case AddService:
+			allowed, found := allowedActions[ApplyActionAddService]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to add a service"}
+			}
+			// if service has destinations, check as well if allowed
+			if len(csi.Service.Destinations) > 0 {
+				allowed, found = allowedActions[ApplyActionAddDestination]
+				if !found || ! allowed {
+					return &IPVSApplyError{what: "not allowed to add a destinations"}
+				}
+			}
+		case UpdateService:
+			allowed, found := allowedActions[ApplyActionUpdateService]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to update a service"}
+			}
+		case AddDestination:
+			allowed, found := allowedActions[ApplyActionAddDestination]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to add a destination"}
+			}
+		case DeleteDestination:
+			allowed, found := allowedActions[ApplyActionDeleteDestination]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to delete a destination"}
+			}
+		case UpdateDestination:
+			allowed, found := allowedActions[ApplyActionUpdateDestination]
+			if !found || ! allowed {
+				return &IPVSApplyError{what: "not allowed to update a destination"}
+			}
+		default:
+			log.WithField("type", csi.Type).Tracef("Unhandled change type")			
+		}
+	}
 
 	for idx, csiIntf := range cs.Items {
 		csi := csiIntf.(ChangeSetItem)

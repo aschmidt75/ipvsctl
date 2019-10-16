@@ -51,7 +51,9 @@ func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, new
 
 	log.WithField("changeset", cs).Tracef("applying changeset.")
 
-	err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs)
+	err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs, ApplyActions{
+		ApplyActionUpdateDestination: true,
+	})
 	if err == nil {
 		log.Infof("Updated weight to %d for %s/%s", d.Weight, s.Address, d.Address)
 	}
@@ -129,7 +131,9 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 					"w": d.Weight,
 				}).Trace("calculate distance")
 
-				err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs)
+				err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs, ApplyActions{
+					ApplyActionUpdateDestination: true,
+				})
 				if err != nil {
 					return err
 				}
