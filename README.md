@@ -1,7 +1,8 @@
 # ipvsctl
 
-`ipvsctl` is a command line frontend for IPVS using desired state configuration. It reads an IPVS services/destinations model from a YAML file, detects changes to the current configuration and applies those changes. 
-It is meant as an add-on to mipvsadm, where changes can be applied from models instead of ad-hoc commands.
+`ipvsctl` is a command line frontend for IPVS using desired state configuration. It reads an IPVS services/destinations model from a YAML file, detects changes to the current configuration and applies those changes. It can pull parameters dynamically from the environment, files or URLs.
+
+It is meant as an add-on to ipvsadm, where changes can be applied from models instead of ad-hoc commands.
 
 ## Features
 
@@ -24,13 +25,13 @@ services:
 - address: tcp://${host.eth0}:80
   sched: rr
   destinations:
-  - address: 10.50.0.1:8080
+  - address: 10.50.0.1:${env.MYPORT}
     forward: nat
-  - address: 10.50.0.2:8080
+  - address: 10.50.0.2:${env.MYPORT}
     forward: nat
 EOF
 
-# ipvsctl apply -f /tmp/ipvsconf
+# MYPORT=8080 ipvsctl apply -f /tmp/ipvsconf
 
 # ipvsctl get
 services:
