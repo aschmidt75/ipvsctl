@@ -8,7 +8,7 @@ import (
 
 // ChangeSet compares current active configuration against newconfig and
 // creates a change set containing all differences
-func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, error) {
+func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts AppyOpts) (*ChangeSet, error) {
 
 	res := NewChangeSet()
 
@@ -167,7 +167,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig) (*ChangeSet, erro
 					for _, newDestination := range newService.Destinations {
 
 						if destination.Address == newDestination.Address {
-							equal, err := CompareDestinationsEquality(ipvsconfig, destination, newconfig, newDestination)
+							equal, err := CompareDestinationsEquality(ipvsconfig, destination, newconfig, newDestination, opts)
 							if err != nil {
 								return res, err
 							}

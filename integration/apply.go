@@ -22,20 +22,20 @@ func (e *IPVSApplyError) Error() string {
 
 // Apply compares new config to current config, builds a changeset and
 // applies the change set items within.
-func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig) error {
+func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig, opts AppyOpts) error {
 
 	// create changeset from new configuration
-	cs, err := ipvsconfig.ChangeSet(newconfig)
+	cs, err := ipvsconfig.ChangeSet(newconfig, opts)
 	if err != nil {
 		return &IPVSApplyError{ what: "Unable to build change set from new configuration", origErr: err}
 	}
 
-	return ipvsconfig.ApplyChangeSet(newconfig, cs)
+	return ipvsconfig.ApplyChangeSet(newconfig, cs, opts)
 }
 
 // ApplyChangeSet takes a chhange set and applies all change items to
 // the given IPVSConfig 
-func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSet) error {
+func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSet, opts AppyOpts) error {
 
 	ipvs, err := ipvs.New("")
 	if err != nil {

@@ -83,6 +83,10 @@ type ChangeSetItem struct {
 	Destination *Destination      `yaml:"destination,omitempty"`
 }
 
+type ApplyOpts struct {
+	KeepWeights bool
+}
+
 // NewChangeSet makes a new changeset
 func NewChangeSet() *ChangeSet {
 	return &ChangeSet{
@@ -336,7 +340,7 @@ func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConf
 	return true, nil
 }
 
-func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination) (bool, error) {
+func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination, opts AppyOpts) (bool, error) {
 	var err error
 
 	// compare host+port
@@ -376,25 +380,27 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		return false, nil
 	}
 
-	// compare weight
-	aw := a.Weight
-	bw := b.Weight
-	if aw == 0 && ca.Defaults.Weight != nil && *ca.Defaults.Weight != 0 {
-		aw = *ca.Defaults.Weight
-	}
-	if bw == 0 && cb.Defaults.Weight != nil && *cb.Defaults.Weight != 0 {
-		bw = *cb.Defaults.Weight
-	}
-	// default weight is 1
-	if aw == 0 {
-		aw = 1
-	}
-	if bw == 0 {
-		bw = 1
-	}
+	if opts.KeepWeights == false {
+		// compare weight
+		aw := a.Weight
+		bw := b.Weight
+		if aw == 0 && ca.Defaults.Weight != nil && *ca.Defaults.Weight != 0 {
+			aw = *ca.Defaults.Weight
+		}
+		if bw == 0 && cb.Defaults.Weight != nil && *cb.Defaults.Weight != 0 {
+			bw = *cb.Defaults.Weight
+		}
+		// default weight is 1
+		if aw == 0 {
+			aw = 1
+		}
+		if bw == 0 {
+			bw = 1
+		}
 
-	if aw != bw {
-		return false, nil
+		if aw != bw {
+			return false, nil
+		}
 	}
 
 	// everything is equal

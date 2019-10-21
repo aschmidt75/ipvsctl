@@ -71,7 +71,7 @@ INFO Updated weight to 100 for service tcp://10.1.2.3:80/10.50.0.1:8080
 This project builds correctly for Linux only.
 
 ```bash
-$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build  -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
+$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
 ```
 
 ## Test

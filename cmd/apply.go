@@ -9,9 +9,10 @@ import (
 
 // Apply implements the "apply" cli command
 func Apply(cmd *cli.Cmd) {
-	cmd.Spec = "[-f=<FILENAME>]"
+	cmd.Spec = "[-f=<FILENAME>] [--keep-weights]"
 	var (
-		applyFile = cmd.StringOpt("f", "/etc/ipvsctl.yaml", "File to apply. Use - for STDIN")
+		applyFile   = cmd.StringOpt("f", "/etc/ipvsctl.yaml", "File to apply. Use - for STDIN")
+		keepWeights = cmd.BoolOpt("keep-weights", false, "Leave weights as they are when updating destinations")
 	)
 
 	cmd.Action = func() {
@@ -37,7 +38,9 @@ func Apply(cmd *cli.Cmd) {
 		}
 
 		// apply new configuration
-		err = MustGetCurrentConfig().Apply(newConfig)
+		err = MustGetCurrentConfig().Apply(newConfig, ApplyOpts{
+			KeepWeights: keepWeights,
+		})
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitApplyErr)
