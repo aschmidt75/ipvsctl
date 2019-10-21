@@ -177,6 +177,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 							if equal == false {
 								adrService := MakeAdressStringFromIpvsService(service.service)
 
+								if opts.KeepWeights {
+									// newDestination might have a new weight, but we keep the old one
+									newDestination.Weight = destination.Weight
+								}
+
 								res.AddChange(ChangeSetItem{
 									Type:        UpdateDestination,
 									Description: fmt.Sprintf("Updating existing destination %s in service %s because details have changed", newDestination.Address, adrService),

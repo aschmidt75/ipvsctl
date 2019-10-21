@@ -1,0 +1,7 @@
+services:
+  - address: tcp://1.2.3.4:80
+    sched: wrr 
+    destinations: 
+    - address: 10.0.0.1:80
+      forward: nat
+      weight: 200

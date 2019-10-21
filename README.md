@@ -9,7 +9,7 @@ It is meant as an add-on to ipvsadm, where changes can be applied from models in
 * Adding, Updating and Deleting services and destinations using YAML models
 * Services using TCP,UDP,SCTP and FWMARK
 * All schedulers, all forwards
-* Setting Weights on destinations
+* Setting Weights on destinations, keeping existing weights when updating destinations
 * Setting addresses from dynamic parameters (e.g. from environment, files, uris.)
 
 Currently not supported
@@ -100,7 +100,7 @@ $ bats .
  ✓ given a configuration with defaults, when i apply it, all default port values must have been set correctly.
  ✓ given a configuration with defaults, when i apply it, all default scheduler values must have been set correctly.
 [...]
-76 tests, 0 failures
+77 tests, 0 failures
 ```
 
 ## License
