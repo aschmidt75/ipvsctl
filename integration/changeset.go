@@ -8,7 +8,7 @@ import (
 
 // ChangeSet compares current active configuration against newconfig and
 // creates a change set containing all differences
-func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts AppyOpts) (*ChangeSet, error) {
+func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (*ChangeSet, error) {
 
 	res := NewChangeSet()
 
@@ -27,7 +27,10 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts AppyOpts) (*
 			}
 		}
 
-		log.Tracef("Found=%t, activeService=%s in new config\n", found, service.Address)
+		log.WithFields(log.Fields{
+			"ex":            found,
+			"activeService": service.Address,
+		}).Tracef("In new config")
 
 		if found == false {
 			adr := MakeAdressStringFromIpvsService(service.service)

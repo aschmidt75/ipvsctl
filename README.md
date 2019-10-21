@@ -100,7 +100,7 @@ $ bats .
  ✓ given a configuration with defaults, when i apply it, all default port values must have been set correctly.
  ✓ given a configuration with defaults, when i apply it, all default scheduler values must have been set correctly.
 [...]
-60 tests, 0 failures
+76 tests, 0 failures
 ```
 
 ## License

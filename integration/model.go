@@ -83,8 +83,37 @@ type ChangeSetItem struct {
 	Destination *Destination      `yaml:"destination,omitempty"`
 }
 
+// ApplyActionType is a mapped string to some action for the apply function
+type ApplyActionType string
+
+// ApplyActions maps actions to bools
+type ApplyActions map[ApplyActionType]bool
+
+const (
+	// ApplyActionAddService allows the addition of new services
+	ApplyActionAddService ApplyActionType = "as"
+
+	// ApplyActionUpdateService allows the update of existing services
+	ApplyActionUpdateService ApplyActionType = "us"
+
+	// ApplyActionDeleteService allows deletion of existing services
+	ApplyActionDeleteService ApplyActionType = "ds"
+
+	// ApplyActionAddDestination allows the addition of new destinations to existing services
+	ApplyActionAddDestination ApplyActionType = "ad"
+
+	// ApplyActionUpdateDestination allows for updates of existing destinations
+	ApplyActionUpdateDestination ApplyActionType = "ud"
+
+	// ApplyActionDeleteDestination allows for deleting of existing destinations
+	ApplyActionDeleteDestination ApplyActionType = "dd"
+)
+
+
+
 type ApplyOpts struct {
 	KeepWeights bool
+	AllowedActions ApplyActions
 }
 
 // NewChangeSet makes a new changeset
@@ -340,7 +369,7 @@ func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConf
 	return true, nil
 }
 
-func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination, opts AppyOpts) (bool, error) {
+func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination, opts ApplyOpts) (bool, error) {
 	var err error
 
 	// compare host+port

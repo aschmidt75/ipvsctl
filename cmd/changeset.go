@@ -6,6 +6,7 @@ import (
 
 	"gopkg.in/yaml.v2"
 
+	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
 )
@@ -40,7 +41,7 @@ func ChangeSet(cmd *cli.Cmd) {
 		}
 
 		// create changeset from new configuration
-		cs, err := MustGetCurrentConfig().ChangeSet(newConfig)
+		cs, err := MustGetCurrentConfig().ChangeSet(newConfig, integration.ApplyOpts{})
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitApplyErr)
