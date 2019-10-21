@@ -15,7 +15,7 @@ func main() {
 
 	app := cli.App("ipvsctl", "A desired state configuration frontend for ipvs")
 
-	app.Version("version", "0.1.0")
+	app.Version("version", "0.1.1")
 
 	app.Spec = "[-d] [-v] [--params-network] [--params-env] [--params-file=<FILE>...] [--params-url=<URL>...]"
 
