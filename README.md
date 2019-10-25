@@ -4,6 +4,8 @@
 
 It is meant as an add-on to ipvsadm, where changes can be applied from models instead of ad-hoc commands.
 
+[![CircleCI](https://circleci.com/gh/aschmidt75/ipvsctl/tree/master.svg?style=svg)](https://circleci.com/gh/aschmidt75/ipvsctl/tree/master)
+
 ## Features
 
 * Adding, Updating and Deleting services and destinations using YAML models
