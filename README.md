@@ -19,6 +19,10 @@ Currently not supported
 * IPv6 addresses are not yet supported
 * Timeouts, Netmasks, Scheduling flags, Statistics, Thresholds are not supported yet
 
+## Documentation
+
+Please see [the documentation section in docs/](docs/README.md) for more details on commands, model elements etc. 
+
 ## Example
 
 ```
