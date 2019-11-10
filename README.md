@@ -21,7 +21,7 @@ Currently not supported
 
 ## Documentation
 
-Please see [the documentation section in doc/](doc/README.md) for more details on commands, model elements etc. 
+Please see [the documentation section in doc/](doc/) for more details on commands, model elements etc. 
 
 ## Example
 
