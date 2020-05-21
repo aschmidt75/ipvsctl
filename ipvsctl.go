@@ -10,12 +10,16 @@ import (
 	log "github.com/sirupsen/logrus"
 )
 
+var (
+	version string
+)
+
 func main() {
 	c := config.Config()
 
 	app := cli.App("ipvsctl", "A desired state configuration frontend for ipvs")
 
-	app.Version("version", "0.2.0")
+	app.Version("version", version)
 
 	app.Spec = "[-d] [-v] [--params-network] [--params-env] [--params-file=<FILE>...] [--params-url=<URL>...]"
 
