@@ -6,18 +6,17 @@ import (
 	"os"
 	"strings"
 
+	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
 	log "github.com/sirupsen/logrus"
-	integration "github.com/aschmidt75/ipvsctl/integration"
-
 )
 
 func parseAllowedActions(actionSpec *string) (integration.ApplyActions, error) {
 	all := integration.ApplyActions{
-		integration.ApplyActionAddService: true,
-		integration.ApplyActionUpdateService: true,
-		integration.ApplyActionDeleteService: true,
-		integration.ApplyActionAddDestination: true,
+		integration.ApplyActionAddService:        true,
+		integration.ApplyActionUpdateService:     true,
+		integration.ApplyActionDeleteService:     true,
+		integration.ApplyActionAddDestination:    true,
 		integration.ApplyActionUpdateDestination: true,
 		integration.ApplyActionDeleteDestination: true,
 	}
@@ -27,17 +26,17 @@ func parseAllowedActions(actionSpec *string) (integration.ApplyActions, error) {
 		}
 
 		actions := strings.Split(*actionSpec, ",")
-		res := make(integration.ApplyActions,len(actions))
+		res := make(integration.ApplyActions, len(actions))
 		for _, action := range actions {
 			_, ex := all[integration.ApplyActionType(action)]
 			if ex == false {
 				// no such action
-				return integration.ApplyActions{}, errors.New(fmt.Sprintf("Invalid action: %s", action))
+				return integration.ApplyActions{}, fmt.Errorf("Invalid action: %s", action)
 			}
 			res[integration.ApplyActionType(action)] = true
 		}
 		return res, nil
-	} 
+	}
 	return integration.ApplyActions{}, errors.New("internal error, no actionSpec given")
 }
 
@@ -45,9 +44,9 @@ func parseAllowedActions(actionSpec *string) (integration.ApplyActions, error) {
 func Apply(cmd *cli.Cmd) {
 	cmd.Spec = "[-f=<FILENAME>] [--keep-weights] [--allowed-actions=<ACTIONS_SPEC>]"
 	var (
-		applyFile  = cmd.StringOpt("f", "/etc/ipvsctl.yaml", "File to apply. Use - for STDIN")
+		applyFile   = cmd.StringOpt("f", "/etc/ipvsctl.yaml", "File to apply. Use - for STDIN")
 		keepWeights = cmd.BoolOpt("keep-weights", false, "Leave weights as they are when updating destinations")
-		actionSpec = cmd.StringOpt("allowed-actions", "*", `
+		actionSpec  = cmd.StringOpt("allowed-actions", "*", `
 Comma-separated list of allowed actions.
 as=Add service, us=update service, ds=delete service,
 ad=Add destination, ud=update destination, dd=delete destination.
@@ -86,7 +85,7 @@ Default * for all actions.
 
 		// apply new configuration
 		err = MustGetCurrentConfig().Apply(newConfig, integration.ApplyOpts{
-			KeepWeights: *keepWeights,
+			KeepWeights:    *keepWeights,
 			AllowedActions: allowedSet,
 		})
 		if err != nil {

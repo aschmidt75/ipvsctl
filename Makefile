@@ -6,7 +6,7 @@ all: clean lint build
 
 .PHONY: build
 build:
-	GOOS=linux GOARCH=amd64 go build -o release/${BINARY_NAME}-linux-amd64 -ldflags="-X main.version=${VERSION}" ipvsctl.go
+	GOOS=linux GOARCH=amd64 go build -o release/${BINARY_NAME} -ldflags="-X main.version=${VERSION}" ipvsctl.go
 
 lint:
 	@for file in ${SOURCES} ;  do \

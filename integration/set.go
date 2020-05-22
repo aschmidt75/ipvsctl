@@ -62,13 +62,19 @@ func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, new
 }
 
 const (
+	// ControlAdvance advances the time ticker (see cmd/set.go)
 	ControlAdvance = 1
-	ControlExit    = 2
-	ControlFinish  = 3
+	// ControlExit immediately exists the loop
+	ControlExit = 2
+	// ControlFinish finishes the loop
+	ControlFinish = 3
 )
 
+// ContinousControlCh is a signalling channel
 type ContinousControlCh chan int
 
+// SetWeightContinuous sets the weight of a destination to a target value, within a
+// given amount of time, controlled by a channel.
 func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 	serviceName, destinationName string,
 	toWeight int,

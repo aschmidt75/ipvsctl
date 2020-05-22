@@ -11,7 +11,6 @@ import (
 	"strconv"
 	"strings"
 	"syscall"
-
 )
 
 // Service describes an IPVS service entry
@@ -43,7 +42,7 @@ type Defaults struct {
 
 // IPVSConfig is a single ipvs setup
 type IPVSConfig struct {
-	Defaults Defaults  `yaml:"defaults,omitempty"`
+	Defaults Defaults   `yaml:"defaults,omitempty"`
 	Services []*Service `yaml:"services,omitempty"`
 }
 
@@ -56,8 +55,8 @@ type ChangeSet struct {
 type ChangeSetItemType string
 
 const (
-	// AddService adds a new service 
-	AddService    ChangeSetItemType = "add-service"
+	// AddService adds a new service
+	AddService ChangeSetItemType = "add-service"
 
 	// UpdateService edits an existing service
 	UpdateService ChangeSetItemType = "update-service"
@@ -66,7 +65,7 @@ const (
 	DeleteService ChangeSetItemType = "delete-service"
 
 	// AddDestination adds a new destination to an existing service
-	AddDestination    ChangeSetItemType = "add-destination"
+	AddDestination ChangeSetItemType = "add-destination"
 
 	// UpdateDestination edits an existing destination
 	UpdateDestination ChangeSetItemType = "update-destination"
@@ -79,8 +78,8 @@ const (
 type ChangeSetItem struct {
 	Type        ChangeSetItemType `yaml:"type"`
 	Description string
-	Service     *Service          `yaml:"service,omitempty"`
-	Destination *Destination      `yaml:"destination,omitempty"`
+	Service     *Service     `yaml:"service,omitempty"`
+	Destination *Destination `yaml:"destination,omitempty"`
 }
 
 // ApplyActionType is a mapped string to some action for the apply function
@@ -109,10 +108,9 @@ const (
 	ApplyActionDeleteDestination ApplyActionType = "dd"
 )
 
-
-
+// ApplyOpts is tthe options struct for the apply action
 type ApplyOpts struct {
-	KeepWeights bool
+	KeepWeights    bool
 	AllowedActions ApplyActions
 }
 
@@ -153,7 +151,7 @@ func splitHostPort(in string) (host string, port int, err error) {
 
 	a := strings.Split(in, ":")
 	if len(a) != 2 {
-		return "", 0, errors.New("parse error in "+in)
+		return "", 0, errors.New("parse error in " + in)
 	}
 	p, err := strconv.ParseInt(a[1], 10, 32)
 	if err != nil {
@@ -301,7 +299,7 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Service) (bool, error) {
 	var err error
 
-	ident, err := CompareServicesIdentifyingEquality(ca, a, cb, b )
+	ident, err := CompareServicesIdentifyingEquality(ca, a, cb, b)
 	if err != nil {
 		return false, err
 	}
@@ -369,6 +367,7 @@ func CompareServicesIdentifyingEquality(ca *IPVSConfig, a *Service, cb *IPVSConf
 	return true, nil
 }
 
+// CompareDestinationsEquality compares two destinations within a IPVSConfig if ports, hosts and the rest are equal
 func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination, opts ApplyOpts) (bool, error) {
 	var err error
 
@@ -436,6 +435,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 	return true, nil
 }
 
+// CompareDestinationIdentifyingEquality compares two destinations within IPVSConfig if Host and post are equal
 func CompareDestinationIdentifyingEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig, b *Destination) (bool, error) {
 	var err error
 
@@ -466,11 +466,12 @@ func CompareDestinationIdentifyingEquality(ca *IPVSConfig, a *Destination, cb *I
 	return true, nil
 }
 
-func (ipvs *IPVSConfig) LocateServiceAndDestination(serviceHandle, destinationHandle string) (*Service, *Destination) {
-	var s *Service = nil
-	var d *Destination = nil
+// LocateServiceAndDestination returns a Service and Destination by their names
+func (c *IPVSConfig) LocateServiceAndDestination(serviceHandle, destinationHandle string) (*Service, *Destination) {
+	var s *Service
+	var d *Destination
 
-	for _, service := range ipvs.Services {
+	for _, service := range c.Services {
 		if service.service == nil {
 			continue
 		}
@@ -479,7 +480,7 @@ func (ipvs *IPVSConfig) LocateServiceAndDestination(serviceHandle, destinationHa
 		if a == serviceHandle {
 			s = service
 
-			// 
+			//
 			for _, destination := range service.Destinations {
 				if destination.destination == nil {
 					continue
