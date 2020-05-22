@@ -28,20 +28,20 @@ Please see [the documentation section in doc/](doc/) for more details on command
 ```
 # cat >/tmp/ipvsconf <<EOF
 services:
-- address: tcp://${host.eth0}:80
+- address: tcp://\${host.eth0}:7656
   sched: rr
   destinations:
-  - address: 10.50.0.1:${env.MYPORT}
+  - address: 10.50.0.1:\${env.MYPORT}
     forward: nat
-  - address: 10.50.0.2:${env.MYPORT}
+  - address: 10.50.0.2:\${env.MYPORT}
     forward: nat
 EOF
 
-# MYPORT=8080 ipvsctl apply -f /tmp/ipvsconf
+# MYPORT=8080 ipvsctl --params-network --params-env apply -f /tmp/ipvsconf
 
-# ipvsctl get
+# ipvsctl geti
 services:
-- address: tcp://10.1.2.3:80
+- address: tcp://10.1.2.3:7656
   sched: rr
   destinations:
   - address: 10.50.0.2:8080
@@ -53,7 +53,7 @@ services:
 IP Virtual Server version 1.2.1 (size=4096)
 Prot LocalAddress:Port Scheduler Flags
   -> RemoteAddress:Port           Forward Weight ActiveConn InActConn
-TCP  10.1.2.3:80 rr
+TCP  10.1.2.3:7656 rr
   -> 10.50.0.1:8080               Masq    0      0          0
   -> 10.50.0.2:8080               Masq    0      0          0    
 
@@ -77,7 +77,9 @@ INFO Updated weight to 100 for service tcp://10.1.2.3:80/10.50.0.1:8080
 This project builds correctly for Linux only.
 
 ```bash
-$ CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
+$ make
+$ release/ipvsctl --version
+0.2.1
 ```
 
 ## Test

@@ -69,8 +69,14 @@ Default * for all actions.
 
 		log.WithField("newconfig", newConfig).Debugf("read")
 
+		resolvedConfig, err := resolveParams(newConfig)
+		if err != nil {
+			log.Error(err)
+			os.Exit(exitParamErr)
+		}
+
 		// validate model before applying
-		err = newConfig.Validate()
+		err = resolvedConfig.Validate()
 		if err != nil {
 			log.Error(err)
 			os.Exit(exitValidateErr)
@@ -84,7 +90,7 @@ Default * for all actions.
 		log.WithField("allowedActions", allowedSet).Trace("parsed")
 
 		// apply new configuration
-		err = MustGetCurrentConfig().Apply(newConfig, integration.ApplyOpts{
+		err = MustGetCurrentConfig().Apply(resolvedConfig, integration.ApplyOpts{
 			KeepWeights:    *keepWeights,
 			AllowedActions: allowedSet,
 		})
