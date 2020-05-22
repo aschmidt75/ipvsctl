@@ -5,6 +5,7 @@
 It is meant as an add-on to ipvsadm, where changes can be applied from models instead of ad-hoc commands.
 
 [![CircleCI](https://circleci.com/gh/aschmidt75/ipvsctl/tree/master.svg?style=svg)](https://circleci.com/gh/aschmidt75/ipvsctl/tree/master)
+[![Go Report Card](https://goreportcard.com/badge/github.com/aschmidt75/ipvsctl)](https://goreportcard.com/report/github.com/aschmidt75/ipvsctl)
 
 ## Features
 
