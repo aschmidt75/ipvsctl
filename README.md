@@ -40,7 +40,7 @@ EOF
 
 # MYPORT=8080 ipvsctl --params-network --params-env apply -f /tmp/ipvsconf
 
-# ipvsctl geti
+# ipvsctl get
 services:
 - address: tcp://10.1.2.3:7656
   sched: rr
