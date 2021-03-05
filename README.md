@@ -80,7 +80,9 @@ You can build this as describe below or install one of the versions under the `r
 with the appropriate capabilities, e.g.:
 
 ```bash
-$ chmod +x ipvsctl
+$ VERSION=0.2.2
+$ URL=https://github.com/aschmidt75/ipvsctl/releases/download/v${VERSION}/ipvsctl_${VERSION}_$(uname -s)_$(uname -m).tar.gz
+$ curl -L $URL | tar xfvz -$ chmod +x ipvsctl
 $ sudo cp ipvsctl /usr/local/bin
 $ sudo setcap 'cap_net_admin+eip' /usr/local/bin/ipvsctl 
 ```
@@ -94,7 +96,7 @@ This project builds correctly for Linux only.
 ```bash
 $ make
 $ dist/ipvsctl --version
-0.2.1
+0.2.2
 ```
 
 ## Test
