@@ -82,7 +82,8 @@ with the appropriate capabilities, e.g.:
 ```bash
 $ VERSION=0.2.2
 $ URL=https://github.com/aschmidt75/ipvsctl/releases/download/v${VERSION}/ipvsctl_${VERSION}_$(uname -s)_$(uname -m).tar.gz
-$ curl -L $URL | tar xfvz -$ chmod +x ipvsctl
+$ curl -L $URL | tar xfvz -
+$ chmod +x ipvsctl
 $ sudo cp ipvsctl /usr/local/bin
 $ sudo setcap 'cap_net_admin+eip' /usr/local/bin/ipvsctl 
 ```
