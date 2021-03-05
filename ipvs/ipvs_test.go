@@ -1,6 +1,6 @@
 // from libnetwork: https://github.com/docker/libnetwork
-// Code and documentation copyright 2015 Docker, inc. 
-// Code released under the Apache 2.0 license. 
+// Code and documentation copyright 2015 Docker, inc.
+// Code released under the Apache 2.0 license.
 // +build linux
 
 package ipvs

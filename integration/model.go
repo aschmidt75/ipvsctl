@@ -161,7 +161,7 @@ func splitHostPort(in string) (host string, port int, err error) {
 	return a[0], int(p), nil
 }
 
-func splitCompoundAddress(in string) (procotol, addressPart string, port, fwmark int, err error) {
+func splitCompoundAddress(in string) (protocol, addressPart string, port, fwmark int, err error) {
 	if strings.HasPrefix(in, "fwmark:") {
 		// treat rest as fwmark integer
 		a := strings.Split(in, ":")

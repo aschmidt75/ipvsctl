@@ -84,7 +84,7 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 
 		for idx, dest := range dests {
 			log.WithFields(log.Fields{
-				"idx": idx, 
+				"idx":  idx,
 				"dest": *dest,
 			}).Trace("processing")
 
@@ -103,7 +103,7 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 // MakeAdressStringFromIpvsService creates a model-valid address
 // string from an ipvs.Service entry.
 func MakeAdressStringFromIpvsService(service *ipvs.Service) string {
-	var adrStr = ""
+	var adrStr string
 	if service.Protocol != 0 {
 		protoStr := protoNumToStr(service)
 		ipStr := fmt.Sprintf("%s", service.Address)

@@ -18,7 +18,7 @@ func TestSplitProtoHostPort(t *testing.T) {
 	for _, table := range tables {
 		p, hp, err := splitProtoHostPort(table.in)
 		if err != nil {
-			t.Errorf("Internal error occured: %s", err)
+			t.Errorf("Internal error occurred: %s", err)
 		}
 		if p != table.proto {
 			t.Errorf("Proto was incorrect: %s", p)
@@ -43,7 +43,7 @@ func TestSplitHostPort(t *testing.T) {
 	for _, table := range tables {
 		h, p, err := splitHostPort(table.in)
 		if err != nil {
-			t.Errorf("Internal error occured: %s", err)
+			t.Errorf("Internal error occurred: %s", err)
 		}
 		if p != table.port {
 			t.Errorf("port was incorrect: %d", p)
@@ -67,7 +67,7 @@ func TestSplitCompoundAddress(t *testing.T) {
 	for _, table := range tables {
 		p, ap, port, fwmark, err := splitCompoundAddress(table.in)
 		if err != nil {
-			t.Errorf("Internal error occured: %s", err)
+			t.Errorf("Internal error occurred: %s", err)
 		}
 		if p != table.p {
 			t.Errorf("Proto was incorrect: %s", p)
