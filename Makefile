@@ -1,4 +1,3 @@
-VERSION := `cat VERSION`
 SOURCES ?= $(shell find . -name "*.go" -type f)
 BINARY_NAME = ipvsctl
 
@@ -6,7 +5,7 @@ all: clean lint build
 
 .PHONY: build
 build:
-	GOOS=linux GOARCH=amd64 go build -o release/${BINARY_NAME} -ldflags="-X main.version=${VERSION}" ipvsctl.go
+	GOOS=linux GOARCH=amd64 go build -o dist/${BINARY_NAME} ipvsctl.go
 
 lint:
 	@for file in ${SOURCES} ;  do \
@@ -24,6 +23,9 @@ cover:
 
 .PHONY: clean
 clean:
-	@rm -rf release/*
+	@rm -rf dist/*
 	@rm -f cover.out
 
+.PHONY: release
+release: 
+	goreleaser --snapshot --rm-dist

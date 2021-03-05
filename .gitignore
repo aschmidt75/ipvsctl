@@ -13,5 +13,6 @@
 
 *.code-workspace
 *.sh
+dist/
 release/
 .vscode/

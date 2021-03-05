@@ -11,7 +11,9 @@ import (
 )
 
 var (
-	version string
+	version = "dev"
+	commit  = "none"
+	date    = "unknown"
 )
 
 func main() {
@@ -27,9 +29,9 @@ func main() {
 	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: false. False equals to being quiet")
 	paramsHostNetwork := app.BoolOpt("params-network", c.ParamsHostNetwork, "Dynamic parameters. Add every network interface name as resolvable ip address, e.g. net.eth0")
 	paramsHostEnv := app.BoolOpt("params-env", c.ParamsHostNetwork, "Dynamic parameters. Add every environment entry, e.g. env.port=<ENV VAR \"port\">")
-	paramsFiles := make([]string,10)
+	paramsFiles := make([]string, 10)
 	app.StringsOptPtr(&paramsFiles, "params-file", []string{c.ParamsFilesFromEnv}, "Dynamic parameters. Add parameters from yaml or json file.")
-	paramsURLs := make([]string,10)
+	paramsURLs := make([]string, 10)
 	app.StringsOptPtr(&paramsURLs, "params-url", []string{c.ParamsURLsFromEnv}, "Dynamic parameters. Add parameters from yaml or json resource given by URL.")
 
 	app.Command("get", "retrieve ipvs configuration and returns as yaml", cmd.Get)

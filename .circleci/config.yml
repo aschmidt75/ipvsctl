@@ -14,7 +14,7 @@ jobs:
 
       - run: 
           name: build
-          command: CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
+          command: GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -v -o release/ipvsctl ipvsctl.go
 
       - save_cache:
           key: go-mod-v4-{{ checksum "go.sum" }}

@@ -73,13 +73,27 @@ INFO Updated weight to 100 for service tcp://10.1.2.3:80/10.50.0.1:8080
 * Linux
 * ipvs kernel modules installed and loaded
 
+## Install
+
+You can build this as describe below or install one of the versions under the `releases` tab.
+`ipvsctl` makes modifications to the ipvs tables, so it either needs to be run as root or equipped
+with the appropriate capabilities, e.g.:
+
+```bash
+$ chmod +x ipvsctl
+$ sudo cp ipvsctl /usr/local/bin
+$ sudo setcap 'cap_net_admin+eip' /usr/local/bin/ipvsctl 
+```
+
+Caution as this allows any user to modify ipvs tables! Please evaluate whether `sudo` or `setcap` is the right approach for you.
+
 ## Build
 
 This project builds correctly for Linux only.
 
 ```bash
 $ make
-$ release/ipvsctl --version
+$ dist/ipvsctl --version
 0.2.1
 ```
 
