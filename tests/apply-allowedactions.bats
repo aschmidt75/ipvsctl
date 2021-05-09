@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
-IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+IPVSCTL=$(which ipvsctl)
+if [ -z "${IPVSCTL}" ]; then
+	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+fi
 ASSSD=fixtures/apply-single-service-single-destination.yaml
 
 @test "when i apply with invalid allowed actions, it must fail" {

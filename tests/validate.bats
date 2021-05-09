@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
-IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+IPVSCTL=$(which ipvsctl)
+if [ -z "${IPVSCTL}" ]; then
+	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+fi
 
 
 @test "given a correct model, when i validate it, it should pass" {

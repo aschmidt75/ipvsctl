@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
-IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+IPVSCTL=$(which ipvsctl)
+if [ -z "${IPVSCTL}" ]; then
+	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+fi
 
 # test for a clean ipvs config 
 @test "empty ipvs table yields empty yaml" {

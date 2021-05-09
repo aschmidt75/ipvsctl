@@ -1,6 +1,9 @@
 #!/usr/bin/env bats
 
-IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+IPVSCTL=$(which ipvsctl)
+if [ -z "${IPVSCTL}" ]; then
+	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+fi
 
 @test "given a configuration with defaults, when i apply it, all default port values must have been set correctly." {
 	ipvsadm -C

@@ -1,7 +1,9 @@
 #!/usr/bin/env bats
 
-IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
-
+IPVSCTL=$(which ipvsctl)
+if [ -z "${IPVSCTL}" ]; then
+	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+fi
 
 @test "given a model with a network parameter, when i validate it without parameters enabled, it should fail" {
 	run $IPVSCTL validate -f fixtures/params-network.yaml
@@ -69,6 +71,10 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 }
 
 @test "given a parameterized model, when it validate it with an valid parameter URL(s), it should pass" {
+
+DV=$(which docker 2>/dev/null || true)
+if [ "${DV}" != "" ]; then  
+
     TESTCONTAINER=$(docker run -p 127.0.0.1:9999:80 -v $(pwd)/fixtures/params:/usr/share/nginx/html:ro -d nginx)
 
     run $IPVSCTL --params-url=http://127.0.0.1:9999//params-file.yaml validate -f fixtures/params-fromfile.yaml
@@ -84,5 +90,6 @@ IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
 	[ "$status" -eq 0 ]
 
     docker stop ${TESTCONTAINER} && docker rm ${TESTCONTAINER}
+fi
 }
 
