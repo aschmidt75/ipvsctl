@@ -1,11 +1,11 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 // Validate implements the "validate" cli command
@@ -17,9 +17,8 @@ func Validate(cmd *cli.Cmd) {
 
 	cmd.Action = func() {
 
-		log.WithField("file", *filename).Tracef("Using file")
 		if *filename == "" {
-			log.Errorf("Must specify an input file")
+			fmt.Fprintf(os.Stderr, "Must specify an input file\n")
 			os.Exit(exitInvalidFile)
 		}
 
@@ -31,7 +30,7 @@ func Validate(cmd *cli.Cmd) {
 
 		cr, err := resolveParams(c)
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Unable to resolve params: %s\n", err)
 			os.Exit(exitParamErr)
 		}
 
@@ -39,11 +38,11 @@ func Validate(cmd *cli.Cmd) {
 		err = cr.Validate()
 		if err != nil {
 			e := err.(*integration.IPVSValidateError)
-			log.Error(e)
+			fmt.Fprintf(os.Stderr, "Validation error: %s\n", e)
 			os.Exit(exitValidateErr)
 		}
 
-		log.Info("Configuration valid.")
+		fmt.Println("Configuration valid.")
 		os.Exit(exitOk)
 	}
 }

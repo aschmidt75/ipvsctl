@@ -3,8 +3,6 @@ package integration
 import (
 	"fmt"
 	"time"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // IPVSetError signals an error when updating configuration
@@ -22,19 +20,11 @@ func (e *IPVSetError) Error() string {
 
 // SetWeight sets the destination's weight to newWeight
 func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, newWeight int) error {
-	log.WithFields(log.Fields{
-		"service":     serviceName,
-		"destination": destinationName,
-	}).Debugf("Locating")
 	s, d := ipvsconfig.LocateServiceAndDestination(serviceName, destinationName)
-	if s != nil {
-		log.WithField("service", s).Trace("Found service")
-	} else {
+	if s == nil {
 		return &IPVSetError{what: fmt.Sprintf("Service %s not found in active ipvs configuration. Try ipvsctl get\n", serviceName)}
 	}
-	if d != nil {
-		log.WithField("destination", d).Trace("Found destination")
-	} else {
+	if d == nil {
 		return &IPVSetError{what: fmt.Sprintf("Destination %s not found in active ipvs configuration. Try ipvsctl get\n", destinationName)}
 	}
 
@@ -49,14 +39,14 @@ func (ipvsconfig *IPVSConfig) SetWeight(serviceName, destinationName string, new
 		Destination: d,
 	})
 
-	log.WithField("changeset", cs).Tracef("applying changeset.")
+	ipvsconfig.log.Printf("applying changeset %s\n", cs)
 
 	err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs, ApplyOpts{
 		AllowedActions: ApplyActions{
 			ApplyActionUpdateDestination: true,
 		}})
 	if err == nil {
-		log.Infof("Updated weight to %d for %s/%s", d.Weight, s.Address, d.Address)
+		ipvsconfig.log.Printf("Updated weight to %d for %s/%s\n", d.Weight, s.Address, d.Address)
 	}
 	return err
 }
@@ -85,19 +75,11 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 		return ipvsconfig.SetWeight(serviceName, destinationName, toWeight)
 	}
 
-	log.WithFields(log.Fields{
-		"service":     serviceName,
-		"destination": destinationName,
-	}).Debugf("Locating")
 	s, d := ipvsconfig.LocateServiceAndDestination(serviceName, destinationName)
-	if s != nil {
-		log.WithField("service", s).Trace("Found service")
-	} else {
+	if s == nil {
 		return &IPVSetError{what: fmt.Sprintf("Service %s not found in active ipvs configuration. Try ipvsctl get\n", serviceName)}
 	}
-	if d != nil {
-		log.WithField("destination", d).Trace("Found destination")
-	} else {
+	if d == nil {
 		return &IPVSetError{what: fmt.Sprintf("Destination %s not found in active ipvs configuration. Try ipvsctl get\n", destinationName)}
 	}
 
@@ -132,12 +114,6 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 				}
 				d.Weight = int(float64(fromWeight) + float64(toWeight-fromWeight)*percElapsed)
 
-				log.WithFields(log.Fields{
-					"t": timeElapsed,
-					"p": percElapsed,
-					"w": d.Weight,
-				}).Trace("calculate distance")
-
 				err := ipvsconfig.ApplyChangeSet(ipvsconfig, cs, ApplyOpts{
 					AllowedActions: ApplyActions{
 						ApplyActionUpdateDestination: true,
@@ -145,11 +121,8 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 				if err != nil {
 					return err
 				}
-				log.WithField("changeset", cs).Trace("applying changeset.")
-				log.WithFields(log.Fields{
-					"weight":   d.Weight,
-					"elapsed%": int(100 * percElapsed),
-				}).Info("Updated weight")
+				//ipvsconfig.log.Printf("applying changeset %#v\n", cs)
+				ipvsconfig.log.Printf("Updated weight %d [elapsed %d %]\n", d.Weight, int(100*percElapsed))
 
 			}
 		}

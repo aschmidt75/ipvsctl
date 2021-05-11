@@ -18,7 +18,6 @@ import (
 	"time"
 	"unsafe"
 
-	log "github.com/sirupsen/logrus"
 	"github.com/vishvananda/netlink/nl"
 	"github.com/vishvananda/netns"
 )
@@ -65,12 +64,12 @@ func setup() {
 	ipvsOnce.Do(func() {
 		var err error
 		if out, err := exec.Command("modprobe", "-va", "ip_vs").CombinedOutput(); err != nil {
-			log.Warnf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+			fmt.Sprintf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
 		}
 
 		ipvsFamily, err = getIPVSFamily()
 		if err != nil {
-			log.Error("Could not get ipvs family information from the kernel. It is possible that ipvs is not enabled in your kernel. Native loadbalancing will not work until this is fixed.")
+			// ("Could not get ipvs family information from the kernel. It is possible that ipvs is not enabled in your kernel. Native loadbalancing will not work until this is fixed.")
 		}
 	})
 }
@@ -81,17 +80,14 @@ func fillService(s *Service) nl.NetlinkRequestData {
 	if s.FWMark != 0 {
 		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrFWMark, nl.Uint32Attr(s.FWMark))
 	} else {
-		rtProto := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrProtocol, nl.Uint16Attr(s.Protocol))
-		log.Tracef("cmdAttr+ rtProto=%#v\n", rtProto)
+		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrProtocol, nl.Uint16Attr(s.Protocol))
 
-		rtAddress := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrAddress, rawIPData(s.Address))
-		log.Tracef("cmdAttr+ rtAddress=%#v\n", rtAddress)
+		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrAddress, rawIPData(s.Address))
 
 		// Port needs to be in network byte order.
 		portBuf := new(bytes.Buffer)
 		binary.Write(portBuf, binary.BigEndian, s.Port)
-		rtPort := nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrPort, portBuf.Bytes())
-		log.Tracef("cmdAttr+ rtPort=%#v\n", rtPort)
+		nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrPort, portBuf.Bytes())
 
 	}
 
@@ -106,8 +102,6 @@ func fillService(s *Service) nl.NetlinkRequestData {
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrFlags, f.Serialize())
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrTimeout, nl.Uint32Attr(s.Timeout))
 	nl.NewRtAttrChild(cmdAttr, ipvsSvcAttrNetmask, nl.Uint32Attr(s.Netmask))
-
-	log.Tracef("cmdAttr=%#v\n", cmdAttr)
 
 	return cmdAttr
 }

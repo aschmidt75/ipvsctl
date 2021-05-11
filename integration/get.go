@@ -4,7 +4,6 @@ import (
 	"fmt"
 
 	ipvs "github.com/aschmidt75/ipvsctl/ipvs"
-	log "github.com/sirupsen/logrus"
 )
 
 func protoNumToStr(service *ipvs.Service) string {
@@ -38,13 +37,13 @@ func (e *IPVSQueryError) Error() string {
 
 // Get retrieves the current IPVC config with all services and destinations
 func (ipvsconfig *IPVSConfig) Get() error {
-	log.Debug("Querying ipvs data...")
+	ipvsconfig.log.Printf("Querying ipvs data...\n")
 
 	ipvs, err := ipvs.New("")
 	if err != nil {
 		return &IPVSHandleError{}
 	}
-	log.Tracef("%#v\n", ipvs)
+	ipvsconfig.log.Printf("%#v\n", ipvs)
 	defer ipvs.Close()
 
 	return getServicesWithDestinations(ipvs, ipvsconfig)
@@ -83,11 +82,6 @@ func getDestinationsForService(ipvs *ipvs.Handle, service *ipvs.Service, s *Serv
 		s.Destinations = make([]*Destination, len(dests))
 
 		for idx, dest := range dests {
-			log.WithFields(log.Fields{
-				"idx":  idx,
-				"dest": *dest,
-			}).Trace("processing")
-
 			s.Destinations[idx] = &Destination{
 				Address:     MakeAdressStringFromIpvsDestination(dest),
 				Weight:      dest.Weight,
@@ -124,7 +118,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 	if err != nil {
 		return &IPVSQueryError{what: "services"}
 	}
-	log.Tracef("%#v\n", services)
+	res.log.Printf("%#v\n", services)
 	if services != nil && len(services) > 0 {
 		res.Services = make([]*Service, len(services))
 
@@ -134,7 +128,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 				return &IPVSQueryError{what: "service"}
 			}
 
-			log.Tracef("%d -> %#v\n", idx, *service)
+			res.log.Printf("%d -> %#v\n", idx, *service)
 
 			var adrStr = MakeAdressStringFromIpvsService(service)
 			res.Services[idx] = &Service{

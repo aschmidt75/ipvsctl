@@ -1,20 +1,20 @@
 package cmd
 
 import (
+	"fmt"
 	"io/ioutil"
-	"os"
 	"net"
 	"net/http"
-	"fmt"
+	"os"
 	"strings"
 
-	"gopkg.in/yaml.v2"
 	"encoding/json"
 
+	"gopkg.in/yaml.v2"
+
 	dynp "github.com/aschmidt75/go-dynamic-params"
-	integration "github.com/aschmidt75/ipvsctl/integration"
-	log "github.com/sirupsen/logrus"
 	"github.com/aschmidt75/ipvsctl/config"
+	integration "github.com/aschmidt75/ipvsctl/integration"
 )
 
 func readInput(filename *string) ([]byte, error) {
@@ -23,13 +23,13 @@ func readInput(filename *string) ([]byte, error) {
 	if *filename == "-" {
 		b, err = ioutil.ReadAll(os.Stdin)
 		if err != nil {
-			log.Errorf("Error reading from STDIN")
+			fmt.Fprintf(os.Stderr, "Error reading from STDIN\n")
 			os.Exit(exitInvalidFile)
 		}
 	} else {
 		b, err = ioutil.ReadFile(*filename)
 		if err != nil {
-			log.Errorf("Error reading from input file %s", *filename)
+			fmt.Fprintf(os.Stderr, "Error reading from input file %s\n", *filename)
 			os.Exit(exitInvalidFile)
 		}
 	}
@@ -38,7 +38,7 @@ func readInput(filename *string) ([]byte, error) {
 }
 
 func readModelFromInput(filename *string) (*integration.IPVSConfig, error) {
-	c := &integration.IPVSConfig{}
+	c := integration.NewIPVSConfig()
 
 	b, err := readInput(filename)
 	if err != nil {
@@ -47,7 +47,7 @@ func readModelFromInput(filename *string) (*integration.IPVSConfig, error) {
 
 	err = yaml.Unmarshal(b, c)
 	if err != nil {
-		log.Errorf("Error parsing yaml")
+		fmt.Fprintf(os.Stderr, "Error parsing yaml from %s\n", *filename)
 		os.Exit(exitInvalidFile)
 	}
 
@@ -62,7 +62,7 @@ func mustAddResolverFromDataOrDie(origin string, rc dynp.ResolverChain, data []b
 		err = yaml.Unmarshal(data, &f)
 		if err != nil {
 			// this is neither json nor yaml
-			log.Errorf("--param-file %s must be JSON or YAML", origin)
+			fmt.Fprintf(os.Stderr, "--param-file %s must be JSON or YAML\n", origin)
 			os.Exit(exitInvalidFile)
 		}
 		switch f.(type) {
@@ -70,47 +70,43 @@ func mustAddResolverFromDataOrDie(origin string, rc dynp.ResolverChain, data []b
 			// ok
 			r, err := dynp.NewYAMLResolverFromString(string(data))
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "unable to resolve params from yaml: %s\n", err)
 				os.Exit(exitFileErr)
 			}
 			rc = append(rc, r)
 		default:
-			log.Errorf("--param-file %s must be JSON or YAML", origin)
+			fmt.Fprintf(os.Stderr, "--param-file %s must be JSON or YAML\n", origin)
 			os.Exit(exitInvalidFile)
 		}
 
 	} else {
 		r, err := dynp.NewJSONResolverFromString(string(data))
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "unable to resolve params from json: %s\n", err)
 			os.Exit(exitFileErr)
 		}
 		rc = append(rc, r)
 
-	}			
+	}
 
-	log.WithField("file", origin).Trace("Added file resolver")
-	
 	return rc
 }
 
 func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig, error) {
 
-	cfg := config.Config() 
+	cfg := config.Config()
 
 	intfAddrMap := make(map[string]string)
 	if cfg.ParamsHostNetwork == true {
 		intfs, err := net.Interfaces()
 		if err != nil {
-			log.Error("Specified dynamic parameter from local network interfaces, but unable to query them")
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Specified dynamic parameter from local network interfaces, but unable to query them: %s\n", err)
 			os.Exit(exitNetErr)
 		}
 		for _, intf := range intfs {
 			addrs, err := intf.Addrs()
 			if err != nil {
-				log.Error("Specified dynamic parameter from local network interfaces, but unable to query details")
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Specified dynamic parameter from local network interfaces, but unable to query details: %s\n", err)
 				os.Exit(exitNetErr)
 			}
 			for idx, addr := range addrs {
@@ -127,18 +123,16 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 				intfAddrMap[key] = value
 			}
 		}
-		log.WithField("map", intfAddrMap).Trace("Added interfaces params")
 	}
 
 	envMap := make(map[string]string)
 	if cfg.ParamsHostEnv == true {
 		for _, e := range os.Environ() {
-			a := strings.Split(e,"=")
+			a := strings.Split(e, "=")
 			if len(a) == 2 {
-				envMap[fmt.Sprintf("env.%s",a[0])] = a[1]
+				envMap[fmt.Sprintf("env.%s", a[0])] = a[1]
 			}
 		}
-		log.WithField("map", envMap).Trace("Added env params")
 	}
 
 	// set up resolvers
@@ -153,10 +147,9 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 			if len(pf) == 0 {
 				continue
 			}
-			log.WithField("pf", pf).Trace("reading parameter file")
 			data, err := ioutil.ReadFile(pf)
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Unable to read from parameter file: %s", err)
 				os.Exit(exitFileErr)
 			}
 
@@ -168,25 +161,22 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 			if len(url) == 0 {
 				continue
 			}
-			log.WithField("url", url).Trace("Fetching parameter data")
 			resp, err := http.Get(url)
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Unable to fetch parameters from url: %s", err)
 				os.Exit(exitNetErr)
 			}
 			defer resp.Body.Close()
 
 			data, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Unable to fetch parameters from url: %s", err)
 				os.Exit(exitNetErr)
 			}
 
 			rc = mustAddResolverFromDataOrDie(url, rc, data)
 		}
 	}
-
-	log.WithField("rc",rc).Trace("Resolver chain is")
 
 	// forward to model using resolvers
 	res, err := ipvsconfig.ResolveParams(rc)
@@ -197,11 +187,12 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 // MustGetCurrentConfig queries the current IPVS configuration
 // or exits in case of an error.
 func MustGetCurrentConfig() *integration.IPVSConfig {
+	l := config.Config().Logger()
 	// retrieve current config
-	currentConfig := &integration.IPVSConfig{}
+	currentConfig := integration.NewIPVSConfigWithLogger(l)
 	err := currentConfig.Get()
 	if err != nil {
-		log.Error(err)
+		fmt.Fprintf(os.Stderr, "Unable to get current ipvs config: %s", err)
 
 		if _, ok := err.(*integration.IPVSHandleError); ok {
 			os.Exit(exitIpvsErrHandle)
@@ -211,5 +202,6 @@ func MustGetCurrentConfig() *integration.IPVSConfig {
 		}
 		os.Exit(exitUnknown)
 	}
+
 	return currentConfig
 }

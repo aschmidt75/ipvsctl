@@ -2,8 +2,6 @@ package integration
 
 import (
 	"fmt"
-
-	log "github.com/sirupsen/logrus"
 )
 
 // ChangeSet compares current active configuration against newconfig and
@@ -26,11 +24,6 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 				found = true
 			}
 		}
-
-		log.WithFields(log.Fields{
-			"ex":            found,
-			"activeService": service.Address,
-		}).Tracef("In new config")
 
 		if found == false {
 			adr := MakeAdressStringFromIpvsService(service.service)

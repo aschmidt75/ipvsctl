@@ -1,10 +1,13 @@
 #!/usr/bin/env bats
 
-IPVSCTL=$(which ipvsctl)
-if [ -z "${IPVSCTL}" ]; then
-	IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../release/ipvsctl"
+IPVSCTL="$(dirname $BATS_TEST_FILENAME)/../dist/ipvsctl"
+if [ ! -x "${IPVSCTL}" ]; then   
+    IPVSCTL=$(which ipvsctl)
+    if [ ! -x "${IPVSCTL}" ]; then   
+        echo ERROR unable to find ipvsctl in local dist or in path
+        exit 1
+    fi
 fi
-
 
 @test "given a clean ipvs config, when i build a changeset for an empty file, it should be empty" {
     ipvsadm -C

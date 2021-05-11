@@ -1,12 +1,12 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 	"time"
 
 	"github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 // Set implements the "set" cli command
@@ -28,24 +28,24 @@ func SetWeight(cmd *cli.Cmd) {
 	cmd.Action = func() {
 
 		if *weight < 0 || *weight > 65535 {
-			log.Errorf("Invalid weight")
+			fmt.Fprintln(os.Stderr, "Invalid weight")
 			os.Exit(exitInvalidInput)
 		}
 
 		if *service == "" {
-			log.Errorf("Service handle must not be empty")
+			fmt.Fprintln(os.Stderr, "Service handle must not be empty")
 			os.Exit(exitInvalidInput)
 		}
 
 		if *destination == "" {
-			log.Errorf("Destination handle must not be empty")
+			fmt.Fprintln(os.Stderr, "Destination handle must not be empty")
 			os.Exit(exitInvalidInput)
 		}
 
 		if *timeSecs <= 0 {
 			err := MustGetCurrentConfig().SetWeight(*service, *destination, *weight)
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Unable to get current config: %s\n", err)
 				os.Exit(exitSetErr)
 			}
 		} else {
@@ -63,7 +63,7 @@ func SetWeight(cmd *cli.Cmd) {
 
 			err := MustGetCurrentConfig().SetWeightContinuous(*service, *destination, *weight, *timeSecs, ch)
 			if err != nil {
-				log.Error(err)
+				fmt.Fprintf(os.Stderr, "Unable to set new weight: %s\n", err)
 				os.Exit(exitSetErr)
 			}
 		}

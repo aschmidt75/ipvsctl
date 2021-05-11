@@ -8,7 +8,6 @@ import (
 
 	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 func parseAllowedActions(actionSpec *string) (integration.ApplyActions, error) {
@@ -57,37 +56,35 @@ Default * for all actions.
 	cmd.Action = func() {
 
 		if *applyFile == "" {
-			log.Errorf("Must specify an input file or - for stdin")
+			fmt.Fprintf(os.Stderr, "Must specify an input file or - for stdin\n")
 			os.Exit(exitInvalidFile)
 		}
 
 		// read new config from file
 		newConfig, err := readModelFromInput(applyFile)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading model: %s\n", err)
 			os.Exit(exitValidateErr)
 		}
 
-		log.WithField("newconfig", newConfig).Debugf("read")
-
 		resolvedConfig, err := resolveParams(newConfig)
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Error resolving parameters: %s\n", err)
 			os.Exit(exitParamErr)
 		}
 
 		// validate model before applying
 		err = resolvedConfig.Validate()
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Error validation model: %s\n", err)
 			os.Exit(exitValidateErr)
 		}
 
 		allowedSet, err := parseAllowedActions(actionSpec)
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "unable to process allowed actions: %s\n", err)
 			os.Exit(exitInvalidInput)
 		}
-		log.WithField("allowedActions", allowedSet).Trace("parsed")
 
 		// apply new configuration
 		err = MustGetCurrentConfig().Apply(resolvedConfig, integration.ApplyOpts{
@@ -95,9 +92,9 @@ Default * for all actions.
 			AllowedActions: allowedSet,
 		})
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Error applying updates: %s\n", err)
 			os.Exit(exitApplyErr)
 		}
-		log.Infof("Applied configuration from %s", *applyFile)
+		fmt.Printf("Applied configuration from %s\n", *applyFile)
 	}
 }

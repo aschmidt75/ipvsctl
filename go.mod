@@ -1,6 +1,6 @@
 module github.com/aschmidt75/ipvsctl
 
-go 1.14
+go 1.16
 
 require (
 	github.com/aschmidt75/go-dynamic-params v0.0.1
@@ -14,7 +14,6 @@ require (
 	github.com/jawher/mow.cli v1.1.0
 	github.com/opencontainers/go-digest v1.0.0-rc1 // indirect
 	github.com/pkg/errors v0.8.1 // indirect
-	github.com/sirupsen/logrus v1.4.2
 	github.com/vishvananda/netlink v1.0.0
 	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f
 	golang.org/x/sys v0.0.0-20190422165155-953cdadca894

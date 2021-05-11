@@ -8,7 +8,6 @@ import (
 
 	integration "github.com/aschmidt75/ipvsctl/integration"
 	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 // ChangeSet implements the "changeset" cli command
@@ -21,35 +20,40 @@ func ChangeSet(cmd *cli.Cmd) {
 	cmd.Action = func() {
 
 		if *csFile == "" {
-			log.Errorf("Must specify an input file or - for stdin")
+			fmt.Fprintf(os.Stderr, "Must specify an input file or - for stdin\n")
 			os.Exit(exitInvalidFile)
 		}
 
 		// read new config from file
 		newConfig, err := readModelFromInput(csFile)
 		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error reading model: %s\n", err)
 			os.Exit(exitValidateErr)
 		}
 
-		log.Debugf("newConfig=%#v\n", newConfig)
+		resolvedConfig, err := resolveParams(newConfig)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Error resolving parameters: %s\n", err)
+			os.Exit(exitParamErr)
+		}
 
 		// validate model before applying
-		err = newConfig.Validate()
+		err = resolvedConfig.Validate()
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Error validation model: %s\n", err)
 			os.Exit(exitValidateErr)
 		}
 
 		// create changeset from new configuration
-		cs, err := MustGetCurrentConfig().ChangeSet(newConfig, integration.ApplyOpts{})
+		cs, err := MustGetCurrentConfig().ChangeSet(resolvedConfig, integration.ApplyOpts{})
 		if err != nil {
-			log.Error(err)
+			fmt.Fprintf(os.Stderr, "Error building/applying changeset: %s\n", err)
 			os.Exit(exitApplyErr)
 		}
 
 		b, err := yaml.Marshal(cs)
 		if err != nil {
-			log.Error("unable to format as yaml")
+			fmt.Fprintf(os.Stderr, "unable to format as yaml")
 			os.Exit(exitErrOutput)
 		}
 		fmt.Printf("%s", string(b))

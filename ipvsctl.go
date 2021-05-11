@@ -5,9 +5,7 @@ import (
 
 	"github.com/aschmidt75/ipvsctl/cmd"
 	"github.com/aschmidt75/ipvsctl/config"
-	"github.com/aschmidt75/ipvsctl/logging"
 	cli "github.com/jawher/mow.cli"
-	log "github.com/sirupsen/logrus"
 )
 
 var (
@@ -23,9 +21,8 @@ func main() {
 
 	app.Version("version", version)
 
-	app.Spec = "[-d] [-v] [--params-network] [--params-env] [--params-file=<FILE>...] [--params-url=<URL>...]"
+	app.Spec = "[-v] [--params-network] [--params-env] [--params-file=<FILE>...] [--params-url=<URL>...]"
 
-	debug := app.BoolOpt("d debug", c.Debug, "Show debug messages")
 	verbose := app.BoolOpt("v verbose", c.Verbose, "Show information. Default: false. False equals to being quiet")
 	paramsHostNetwork := app.BoolOpt("params-network", c.ParamsHostNetwork, "Dynamic parameters. Add every network interface name as resolvable ip address, e.g. net.eth0")
 	paramsHostEnv := app.BoolOpt("params-env", c.ParamsHostNetwork, "Dynamic parameters. Add every environment entry, e.g. env.port=<ENV VAR \"port\">")
@@ -41,13 +38,10 @@ func main() {
 	app.Command("set", "change services and destinations", cmd.Set)
 
 	app.Before = func() {
-		if debug != nil {
-			c.Debug = *debug
-		}
 		if verbose != nil {
 			c.Verbose = *verbose
 		}
-		logging.InitLogging(c.Trace, c.Debug, c.Verbose)
+		c.SetupLogging()
 
 		if paramsHostNetwork != nil {
 			c.ParamsHostNetwork = *paramsHostNetwork
@@ -59,8 +53,6 @@ func main() {
 		copy(c.ParamsFiles, paramsFiles)
 		c.ParamsURLs = make([]string, len(paramsURLs))
 		copy(c.ParamsURLs, paramsURLs)
-
-		log.WithField("cfg", c).Trace("read config")
 	}
 	app.Run(os.Args)
 }

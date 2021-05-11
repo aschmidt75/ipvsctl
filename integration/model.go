@@ -1,6 +1,8 @@
 package integration
 
 import (
+	"io/ioutil"
+	"log"
 	"net"
 
 	ipvs "github.com/aschmidt75/ipvsctl/ipvs"
@@ -44,6 +46,28 @@ type Defaults struct {
 type IPVSConfig struct {
 	Defaults Defaults   `yaml:"defaults,omitempty"`
 	Services []*Service `yaml:"services,omitempty"`
+
+	//
+	log *log.Logger
+}
+
+// NewIPVSConfig creates a new IPVS configuration object with a default logger
+func NewIPVSConfig() *IPVSConfig {
+	return NewIPVSConfigWithLogger(log.New(ioutil.Discard, "ipvsctl: ", log.Lshortfile))
+}
+
+// NewIPVSConfigWithLogger creates a new IPVS configuration object with a custom logger
+func NewIPVSConfigWithLogger(l *log.Logger) *IPVSConfig {
+	return &IPVSConfig{
+		log: l,
+	}
+}
+
+// From creates a new IPSConfig from an existing one
+func From(c *IPVSConfig) *IPVSConfig {
+	return &IPVSConfig{
+		log: c.log,
+	}
 }
 
 // ChangeSet contains a number of change set items
