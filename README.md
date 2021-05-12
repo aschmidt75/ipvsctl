@@ -67,9 +67,11 @@ INFO Updated weight to 100 for service tcp://10.1.2.3:80/10.50.0.1:8080
   -> 10.50.0.2:8080               Masq    0      0          0
 ```
 
+For using ipvsctl programmatically as a library within your own go code, see [doc/libraryexample1](doc/libraryexample1) and [doc/libraryexample2](doc/libraryexample2).
+
 ## Prerequisites
 
-* go 1.13
+* go 1.16
 * Linux
 * ipvs kernel modules installed and loaded
 
@@ -80,7 +82,7 @@ You can build this as describe below or install one of the versions under the `r
 with the appropriate capabilities, e.g.:
 
 ```bash
-$ VERSION=0.2.2
+$ VERSION=0.2.3
 $ URL=https://github.com/aschmidt75/ipvsctl/releases/download/v${VERSION}/ipvsctl_${VERSION}_$(uname -s)_$(uname -m).tar.gz
 $ curl -L $URL | tar xfvz -
 $ chmod +x ipvsctl

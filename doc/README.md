@@ -1,5 +1,9 @@
 # ipvsctl - User Documentation
 
+## Setting up a playground
+
+- [multipass-playground](playground-multipass.md) shows how to use multipass to set up a vm and run tests etc.
+
 ## Command Reference and Examples
 
 - [get](get.md) is used to retrieve the current active configuration
@@ -16,3 +20,8 @@ ipvsctl works on yaml structures, which are described in the [model section](mod
 
 ipvsctl's model may contain [dynamic parameters](dynamicparams.md). Placeholders such as `${myvar}` are read from a source other than the
 model file. 
+
+## Using ipvsctl programmatically
+
+- [doc/libraryexample1](doc/libraryexample1) shows how to apply complete models from json.
+- [doc/libraryexample2](doc/libraryexample2) is about working with change sets to modify individual items
