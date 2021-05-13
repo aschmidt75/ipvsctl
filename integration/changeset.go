@@ -26,7 +26,10 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 		}
 
 		if found == false {
-			adr := MakeAdressStringFromIpvsService(service.service)
+			var adr string
+			if service.service != nil {
+				adr = MakeAdressStringFromIpvsService(service.service)
+			}
 			res.AddChange(ChangeSetItem{
 				Type:        DeleteService,
 				Description: fmt.Sprintf("Delete existing service %s because it does not exist in updated model any more", adr),
@@ -114,8 +117,13 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 					}
 
 					if found == false {
-						adrDestination := MakeAdressStringFromIpvsDestination(destination.destination)
-						adrService := MakeAdressStringFromIpvsService(service.service)
+						var adrService, adrDestination string
+						if service.service != nil {
+							adrService = MakeAdressStringFromIpvsService(service.service)
+						}
+						if destination.destination != nil {
+							adrDestination = MakeAdressStringFromIpvsDestination(destination.destination)
+						}
 						res.AddChange(ChangeSetItem{
 							Type:        DeleteDestination,
 							Description: fmt.Sprintf("Delete existing destination %s in service %s because it does not exist in updated model any more", adrDestination, adrService),
@@ -144,7 +152,10 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 						}
 					}
 					if found == false {
-						adrService := MakeAdressStringFromIpvsService(service.service)
+						var adrService string
+						if service.service != nil {
+							adrService = MakeAdressStringFromIpvsService(service.service)
+						}
 						res.AddChange(ChangeSetItem{
 							Type:        AddDestination,
 							Description: fmt.Sprintf("Adding new destination %s to service %s because it does not yet exist", newDestination.Address, adrService),
@@ -168,7 +179,10 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 								return res, err
 							}
 							if equal == false {
-								adrService := MakeAdressStringFromIpvsService(service.service)
+								var adrService string
+								if service.service != nil {
+									adrService = MakeAdressStringFromIpvsService(service.service)
+								}
 
 								if opts.KeepWeights {
 									// newDestination might have a new weight, but we keep the old one

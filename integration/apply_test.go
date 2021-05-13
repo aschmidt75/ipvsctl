@@ -21,7 +21,7 @@ func clearIPVS() {
 		AllowedActions: integration.AllApplyActions(),
 	}
 
-	currentConfig := integration.NewIPVSConfigWithLogger(l)
+	currentConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	currentConfig.Get()
 	if err := currentConfig.Apply(&newConfig, opts); err != nil {
 		panic(err)
@@ -30,12 +30,12 @@ func clearIPVS() {
 }
 
 var (
-	l *log.Logger
+	TestLogger *log.Logger
 )
 
 func TestMain(m *testing.M) {
-	//l = log.Default()
-	l = log.New(io.Discard, "", 0)
+	//TestLogger = log.Default()
+	TestLogger = log.New(io.Discard, "", 0)
 
 	clearIPVS()
 
@@ -58,7 +58,7 @@ func TestApplyGetOnEmptyModel(t *testing.T) {
 		AllowedActions: integration.AllApplyActions(),
 	}
 
-	currentConfig := integration.NewIPVSConfigWithLogger(l)
+	currentConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := currentConfig.Get(); err != nil {
 		t.Errorf("Unable to get current ipvs table: %w\n", err)
 		t.FailNow()
@@ -68,7 +68,7 @@ func TestApplyGetOnEmptyModel(t *testing.T) {
 		t.FailNow()
 	}
 
-	updatedConfig := integration.NewIPVSConfigWithLogger(l)
+	updatedConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig.Get(); err != nil {
 		t.Errorf("Unable to get current ipvs table: %w\n", err)
 		t.FailNow()
@@ -106,7 +106,7 @@ func TestApplyGetOnServices(t *testing.T) {
 		AllowedActions: integration.AllApplyActions(),
 	}
 
-	currentConfig := integration.NewIPVSConfigWithLogger(l)
+	currentConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := currentConfig.Get(); err != nil {
 		t.Errorf("Unable to get current ipvs table: %w\n", err)
 		t.FailNow()
@@ -116,7 +116,7 @@ func TestApplyGetOnServices(t *testing.T) {
 		t.FailNow()
 	}
 
-	updatedConfig := integration.NewIPVSConfigWithLogger(l)
+	updatedConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig.Get(); err != nil {
 		t.Errorf("Unable to get current ipvs table: %w\n", err)
 		t.FailNow()
@@ -141,7 +141,7 @@ func TestApplyGetOnServices(t *testing.T) {
 		t.FailNow()
 	}
 
-	updatedConfig2 := integration.NewIPVSConfigWithLogger(l)
+	updatedConfig2 := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig2.Get(); err != nil {
 		t.Errorf("Unable to get current ipvs table: %w\n", err)
 		t.FailNow()
