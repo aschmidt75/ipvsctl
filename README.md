@@ -20,11 +20,19 @@ Currently not supported
 * IPv6 addresses are not yet supported
 * Timeouts, Netmasks, Scheduling flags, Statistics, Thresholds are not supported yet
 
+`ipvsctl` is a command line tool, but can also be used as a go library to programmatically work with ipvs in a model based fashion.
+
 ## Documentation
 
 Please see [the documentation section in doc/](doc/) for more details on commands, model elements etc. 
 
 ## Example
+
+* write a sample ipvs configuration file, using placeholder variables. Define a service with two destinations
+* `apply` the configuration, filling placeholders from environment variables and local network interface
+* `get` the active ipvs configuration
+* use classic `ipvsadm` to view the configuration
+* use the `set` command to change the weight of an individual destination
 
 ```
 # cat >/tmp/ipvsconf <<EOF
@@ -71,13 +79,13 @@ For using ipvsctl programmatically as a library within your own go code, see [do
 
 ## Prerequisites
 
-* go 1.16
 * Linux
 * ipvs kernel modules installed and loaded
+* for building ipvsctl: go 1.16
 
 ## Install
 
-You can build this as described below or install one of the versions under the `releases` tab.
+You can build ipvsctl as described below or install one of the versions under the `releases` tab.
 `ipvsctl` makes modifications to the ipvs tables, so it either needs to be run as root or equipped
 with the appropriate capabilities, e.g.:
 
@@ -86,6 +94,10 @@ $ VERSION=0.2.3
 $ URL=https://github.com/aschmidt75/ipvsctl/releases/download/v${VERSION}/ipvsctl_${VERSION}_$(uname -s)_$(uname -m).tar.gz
 $ curl -L $URL | tar xfvz -
 $ chmod +x ipvsctl
+
+$ # either run as root ...
+$ sudo cp ipvsctl /sbin
+$ # .. or open for all users
 $ sudo cp ipvsctl /usr/local/bin
 $ sudo setcap 'cap_net_admin+eip' /usr/local/bin/ipvsctl 
 ```
@@ -99,13 +111,23 @@ This project builds correctly for Linux only.
 ```bash
 $ make
 $ dist/ipvsctl --version
-0.2.2
+0.2.3
 ```
 
 ## Test
 
-ipvsctl contains two kinds of tests: unit tests for only small portions of the code and
-end-to-end tests for all functions.
+ipvsctl contains three kinds of tests: 
+* unit tests for only small portions of the code 
+* integration tests (desctructive, will overwrite ipvs tables)
+* bats-based end-to-end tests for all cli functions (desctructive, will overwrite ipvs tables)
+
+### Unit and integration tests
+
+Integration tests will touch ipvs tables, so it's required to run as root:
+
+```
+# go test -cover ./...
+```
 
 ### End to end tests
 

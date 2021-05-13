@@ -23,5 +23,5 @@ model file.
 
 ## Using ipvsctl programmatically
 
-- [doc/libraryexample1](doc/libraryexample1) shows how to apply complete models from json.
-- [doc/libraryexample2](doc/libraryexample2) is about working with change sets to modify individual items
+- [libraryexample1](libraryexample1/) shows how to apply complete models from json.
+- [libraryexample2](libraryexample2/) is about working with change sets to modify individual items
