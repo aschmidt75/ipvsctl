@@ -132,6 +132,18 @@ const (
 	ApplyActionDeleteDestination ApplyActionType = "dd"
 )
 
+// AllApplyActions provides the ApplyActions with all actions enabled
+func AllApplyActions() ApplyActions {
+	return ApplyActions{
+		ApplyActionAddService:        true,
+		ApplyActionUpdateService:     true,
+		ApplyActionDeleteService:     true,
+		ApplyActionAddDestination:    true,
+		ApplyActionUpdateDestination: true,
+		ApplyActionDeleteDestination: true,
+	}
+}
+
 // ApplyOpts is tthe options struct for the apply action
 type ApplyOpts struct {
 	KeepWeights    bool

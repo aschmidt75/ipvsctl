@@ -122,7 +122,7 @@ func (ipvsconfig *IPVSConfig) SetWeightContinuous(
 					return err
 				}
 				//ipvsconfig.log.Printf("applying changeset %#v\n", cs)
-				ipvsconfig.log.Printf("Updated weight %d [elapsed %d %]\n", d.Weight, int(100*percElapsed))
+				ipvsconfig.log.Printf("Updated weight %d [elapsed %d]\n", d.Weight, int(100*percElapsed))
 
 			}
 		}

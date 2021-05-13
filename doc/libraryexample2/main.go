@@ -1,6 +1,6 @@
-/*
- * libraryexample2 uses change sets to modify in-situ instead of replacing the whole configuration.
- */
+//
+// libraryexample2 uses change sets to modify in-situ instead of replacing the whole configuration.
+//
 package main
 
 import (

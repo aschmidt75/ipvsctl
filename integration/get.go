@@ -119,7 +119,7 @@ func getServicesWithDestinations(ipvs *ipvs.Handle, res *IPVSConfig) error {
 		return &IPVSQueryError{what: "services"}
 	}
 	res.log.Printf("%#v\n", services)
-	if services != nil && len(services) > 0 {
+	if services != nil {
 		res.Services = make([]*Service, len(services))
 
 		for idx, service := range services {
