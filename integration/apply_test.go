@@ -21,7 +21,8 @@ func clearIPVS() {
 		AllowedActions: integration.AllApplyActions(),
 	}
 
-	currentConfig := integration.NewIPVSConfig()
+	currentConfig := integration.NewIPVSConfigWithLogger(l)
+	currentConfig.Get()
 	if err := currentConfig.Apply(&newConfig, opts); err != nil {
 		panic(err)
 	}
@@ -35,7 +36,15 @@ var (
 func TestMain(m *testing.M) {
 	//l = log.Default()
 	l = log.New(io.Discard, "", 0)
-	os.Exit(m.Run())
+
+	clearIPVS()
+
+	ec := m.Run()
+
+	clearIPVS()
+
+	os.Exit(ec)
+
 }
 
 func TestApplyGetOnEmptyModel(t *testing.T) {
@@ -118,6 +127,29 @@ func TestApplyGetOnServices(t *testing.T) {
 	assert.Equal(t, updatedConfig.Services[0].SchedName, "rr")
 	assert.Equal(t, updatedConfig.Services[1].Address, "tcp://127.0.0.1:1234")
 	assert.Equal(t, updatedConfig.Services[1].SchedName, "wrr")
+
+	const targetModel2 string = `services:
+- address: tcp://127.0.0.1:5678
+  sched: rr
+`
+	err = yaml.Unmarshal([]byte(targetModel2), &newConfig)
+	if err != nil {
+		panic(err)
+	}
+	if err := updatedConfig.Apply(&newConfig, opts); err != nil {
+		t.Errorf("Unable to apply test model: %w\n", err)
+		t.FailNow()
+	}
+
+	updatedConfig2 := integration.NewIPVSConfigWithLogger(l)
+	if err := updatedConfig2.Get(); err != nil {
+		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.FailNow()
+	}
+
+	assert.Len(t, updatedConfig2.Services, 1, "Should have service")
+	assert.Equal(t, updatedConfig2.Services[0].Address, "tcp://127.0.0.1:5678")
+	assert.Equal(t, updatedConfig2.Services[0].SchedName, "rr")
 
 	clearIPVS()
 }

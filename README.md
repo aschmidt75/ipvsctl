@@ -77,7 +77,7 @@ For using ipvsctl programmatically as a library within your own go code, see [do
 
 ## Install
 
-You can build this as describe below or install one of the versions under the `releases` tab.
+You can build this as described below or install one of the versions under the `releases` tab.
 `ipvsctl` makes modifications to the ipvs tables, so it either needs to be run as root or equipped
 with the appropriate capabilities, e.g.:
 
