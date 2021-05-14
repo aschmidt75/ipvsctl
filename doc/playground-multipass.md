@@ -5,9 +5,9 @@ Launch a [multipass](https://multipass.run/) LTS instance with this cloud-init s
 ```bash
 $ cat >multipass-cloudinit.yaml <<EOF
 bootcmd:
-    - apt-get update -y && apt-get install -y -q ipvsadm bats
-    - systemctl stop snapd multipathd unattended-upgrades
+    - apt-get update -y && apt-get install -y -q ipvsadm bats gcc
     - snap install go --classic
+    - systemctl stop snapd multipathd unattended-upgrades
     - export RELEASE=0.2.3
     - wget https://github.com/aschmidt75/ipvsctl/releases/download/v"\${RELEASE}"/ipvsctl_"\${RELEASE}"_Linux_x86_64.tar.gz -O ipvsctl.tar.gz
     - tar -xzf ipvsctl.tar.gz && chmod +x ipvsctl && mv ipvsctl /usr/local/bin && ipvsctl --version
