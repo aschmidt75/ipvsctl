@@ -5,7 +5,7 @@ all: clean lint build
 
 .PHONY: build
 build:
-	GOOS=linux GOARCH=amd64 go build -o dist/${BINARY_NAME} ipvsctl.go
+	GOOS=linux GOARCH=arm64 go build -o dist/${BINARY_NAME} ipvsctl.go
 
 lint:
 	@for file in ${SOURCES} ;  do \
