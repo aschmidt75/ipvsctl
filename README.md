@@ -155,5 +155,5 @@ $ bats .
 
 ## License
 
-(C) 2019 @aschmidt75, Apache 2.0 license
+(C) 2019,2025 @aschmidt75, Apache 2.0 license
 except package ipvs, integrated from https://github.com/docker/libnetwork (C) 2015 Docker, Inc. Apache 2.0 license

@@ -60,17 +60,17 @@ func TestApplyGetOnEmptyModel(t *testing.T) {
 
 	currentConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := currentConfig.Get(); err != nil {
-		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.Errorf("Unable to get current ipvs table: %v\n", err)
 		t.FailNow()
 	}
 	if err := currentConfig.Apply(&newConfig, opts); err != nil {
-		t.Errorf("Unable to apply test model: %w\n", err)
+		t.Errorf("Unable to apply test model: %v\n", err)
 		t.FailNow()
 	}
 
 	updatedConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig.Get(); err != nil {
-		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.Errorf("Unable to get current ipvs table: %v\n", err)
 		t.FailNow()
 	}
 
@@ -108,17 +108,17 @@ func TestApplyGetOnServices(t *testing.T) {
 
 	currentConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := currentConfig.Get(); err != nil {
-		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.Errorf("Unable to get current ipvs table: %v\n", err)
 		t.FailNow()
 	}
 	if err := currentConfig.Apply(&newConfig, opts); err != nil {
-		t.Errorf("Unable to apply test model: %w\n", err)
+		t.Errorf("Unable to apply test model: %v\n", err)
 		t.FailNow()
 	}
 
 	updatedConfig := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig.Get(); err != nil {
-		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.Errorf("Unable to get current ipvs table: %v\n", err)
 		t.FailNow()
 	}
 
@@ -137,13 +137,13 @@ func TestApplyGetOnServices(t *testing.T) {
 		panic(err)
 	}
 	if err := updatedConfig.Apply(&newConfig, opts); err != nil {
-		t.Errorf("Unable to apply test model: %w\n", err)
+		t.Errorf("Unable to apply test model: %v\n", err)
 		t.FailNow()
 	}
 
 	updatedConfig2 := integration.NewIPVSConfigWithLogger(TestLogger)
 	if err := updatedConfig2.Get(); err != nil {
-		t.Errorf("Unable to get current ipvs table: %w\n", err)
+		t.Errorf("Unable to get current ipvs table: %v\n", err)
 		t.FailNow()
 	}
 
