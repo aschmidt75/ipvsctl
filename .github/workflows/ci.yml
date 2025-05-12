@@ -12,6 +12,8 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    env:
+      BINARY_NAME: ipvsctl
 
     steps:
       - name: Checkout code
@@ -22,10 +24,20 @@ jobs:
         with:
           go-version: 1.24
 
+      - name: Cache Go modules
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
+
       - name: Install dependencies
         run: |
-          go install honnef.co/go/tools/cmd/staticcheck@latest
-          go install golang.org/x/lint/golint
+          go install honnef.co/go/tools/cmd/staticcheck@2023.1.6
+          go install golang.org/x/lint/golint@v0.0.0-20201208152925-83fdc39ff7b5
           go mod download
           echo "$HOME/go/bin" >> $GITHUB_PATH
 
@@ -34,8 +46,17 @@ jobs:
           echo "::group::Running staticcheck"
           staticcheck ./... || true
           echo "::endgroup::"
+
+      - name: Run golint
+        run: |
           echo "::group::Running lint"
-          golint ./... || true
+          golint ./...
+          echo "::endgroup::"
+
+      - name: Run go vet
+        run: |
+          echo "::group::Running go vet"
+          go vet ./...
           echo "::endgroup::"
  
       - name: Build
