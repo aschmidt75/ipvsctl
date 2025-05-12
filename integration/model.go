@@ -339,7 +339,7 @@ func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Serv
 	if err != nil {
 		return false, err
 	}
-	if ident == false {
+	if !ident {
 		return false, nil
 	}
 
@@ -444,7 +444,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		return false, nil
 	}
 
-	if opts.KeepWeights == false {
+	if !opts.KeepWeights {
 		// compare weight
 		aw := a.Weight
 		bw := b.Weight

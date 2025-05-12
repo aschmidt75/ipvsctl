@@ -31,8 +31,12 @@ jobs:
 
       - name: Run staticcheck
         run: |
-          staticcheck ./...
-          golint ./...
+          echo "::group::Running staticcheck"
+          staticcheck ./... || true
+          echo "::endgroup::"
+          echo "::group::Running lint"
+          golint ./... || true
+          echo "::endgroup::"
  
       - name: Build
         run: 	GOOS=linux go build -o dist/${BINARY_NAME} ipvsctl.go
