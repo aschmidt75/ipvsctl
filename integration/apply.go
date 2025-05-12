@@ -19,6 +19,11 @@ func (e *IPVSApplyError) Error() string {
 	return fmt.Sprintf("Unable to apply new config: %s\nReason: %s", e.what, e.origErr)
 }
 
+func isActionAllowed(actions ApplyActions, action ApplyActionType) bool {
+	allowed, found := actions[action]
+	return found && allowed
+}
+
 // Apply compares new config to current config, builds a changeset and
 // applies the change set items within.
 func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig, opts ApplyOpts) error {
@@ -34,7 +39,7 @@ func (ipvsconfig *IPVSConfig) Apply(newconfig *IPVSConfig, opts ApplyOpts) error
 	return ipvsconfig.ApplyChangeSet(newconfig, cs, opts)
 }
 
-// ApplyChangeSet takes a chhange set and applies all change items to
+// ApplyChangeSet takes a change set and applies all change items to
 // the given IPVSConfig
 func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSet, opts ApplyOpts) error {
 
@@ -48,44 +53,40 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 
 	// check before hand wether all change set items are covered within allowedActions
 	for _, csiIntf := range cs.Items {
-		csi := csiIntf.(ChangeSetItem)
+		csi, ok := csiIntf.(ChangeSetItem)
+		if !ok {
+			return fmt.Errorf("invalid item in change set: %v", csiIntf)
+		}
 
 		switch csi.Type {
 		case DeleteService:
-			allowed, found := allowedActions[ApplyActionDeleteService]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionDeleteService) {
 				return &IPVSApplyError{what: "not allowed to delete a service"}
 			}
 		case AddService:
-			allowed, found := allowedActions[ApplyActionAddService]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionAddService) {
 				return &IPVSApplyError{what: "not allowed to add a service"}
 			}
 			// if service has destinations, check as well if allowed
 			if len(csi.Service.Destinations) > 0 {
-				allowed, found = allowedActions[ApplyActionAddDestination]
-				if !found || !allowed {
+				if !isActionAllowed(allowedActions, ApplyActionAddDestination) {
 					return &IPVSApplyError{what: "not allowed to add a destinations"}
 				}
 			}
 		case UpdateService:
-			allowed, found := allowedActions[ApplyActionUpdateService]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionUpdateService) {
 				return &IPVSApplyError{what: "not allowed to update a service"}
 			}
 		case AddDestination:
-			allowed, found := allowedActions[ApplyActionAddDestination]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionAddDestination) {
 				return &IPVSApplyError{what: "not allowed to add a destination"}
 			}
 		case DeleteDestination:
-			allowed, found := allowedActions[ApplyActionDeleteDestination]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionDeleteDestination) {
 				return &IPVSApplyError{what: "not allowed to delete a destination"}
 			}
 		case UpdateDestination:
-			allowed, found := allowedActions[ApplyActionUpdateDestination]
-			if !found || !allowed {
+			if !isActionAllowed(allowedActions, ApplyActionUpdateDestination) {
 				return &IPVSApplyError{what: "not allowed to update a destination"}
 			}
 		default:
@@ -94,7 +95,11 @@ func (ipvsconfig *IPVSConfig) ApplyChangeSet(newconfig *IPVSConfig, cs *ChangeSe
 	}
 
 	for _, csiIntf := range cs.Items {
-		csi := csiIntf.(ChangeSetItem)
+		csi, ok := csiIntf.(ChangeSetItem)
+		if !ok {
+			return fmt.Errorf("invalid item in change set: %v", csiIntf)
+		}
+
 		ipvsconfig.log.Printf("Applying change set item %#v\n", csi)
 
 		switch csi.Type {
