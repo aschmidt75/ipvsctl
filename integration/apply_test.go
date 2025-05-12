@@ -48,6 +48,9 @@ func TestMain(m *testing.M) {
 }
 
 func TestApplyGetOnEmptyModel(t *testing.T) {
+	if os.Getenv("SKIP_IPVSKERNELREQ") == "1" {
+		t.Skip("Skipping tests that require kernel support")
+	}
 
 	const targetModel string = "{}"
 	var newConfig integration.IPVSConfig
@@ -86,6 +89,9 @@ func TestApplyGetOnEmptyModel(t *testing.T) {
 }
 
 func TestApplyGetOnServices(t *testing.T) {
+	if os.Getenv("SKIP_IPVSKERNELREQ") == "1" {
+		t.Skip("Skipping tests that require kernel support")
+	}
 
 	clearIPVS()
 

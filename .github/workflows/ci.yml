@@ -43,7 +43,11 @@ jobs:
 
       - name: Run tests
         run: |
-          go test -v -coverprofile=cover.out ./...
-          go tool -v cover -func=cover.out
+          SKIP_IPVSKERNELREQ=1 go test -v -coverprofile=coverage.out ./...
+          go tool cover -html=coverage.out -o coverage.html
 
-
+      - name: Upload HTML coverage report
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage-report
+          path: coverage.html
