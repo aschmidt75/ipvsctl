@@ -230,7 +230,7 @@ func execute(s *nl.NetlinkSocket, req *nl.NetlinkRequest, resType uint16) ([][]b
 
 done:
 	for {
-		msgs, err := s.Receive()
+		msgs, _, err := s.Receive()
 		if err != nil {
 			if s.GetFd() == -1 {
 				return nil, fmt.Errorf("socket got closed on receive")

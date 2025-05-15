@@ -1,18 +1,18 @@
 module github.com/aschmidt75/ipvsctl
 
-go 1.23.0
+go 1.24
 
-toolchain go1.24.2
+toolchain go1.24.3
 
 require (
 	github.com/aschmidt75/go-dynamic-params v0.0.1
-	github.com/caarlos0/env/v6 v6.0.0
-	github.com/jawher/mow.cli v1.1.0
+	github.com/caarlos0/env/v6 v6.10.1
+	github.com/jawher/mow.cli v1.2.0
 	github.com/stretchr/testify v1.7.0
-	github.com/vishvananda/netlink v1.0.0
-	github.com/vishvananda/netns v0.0.0-20190625233234-7109fa855b0f
-	golang.org/x/sys v0.32.0
-	gopkg.in/yaml.v2 v2.2.4
+	github.com/vishvananda/netlink v1.3.1
+	github.com/vishvananda/netns v0.0.5
+	golang.org/x/sys v0.33.0
+	gopkg.in/yaml.v2 v2.2.8
 )
 
 require (
@@ -36,5 +36,4 @@ require (
 	golang.org/x/tools v0.32.0 // indirect
 	golang.org/x/xerrors v0.0.0-20191011141410-1b5146add898 // indirect
 	gopkg.in/check.v1 v0.0.0-20161208181325-20d25e280405 // indirect
-	gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c // indirect
 )
