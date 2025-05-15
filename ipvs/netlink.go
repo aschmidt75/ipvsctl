@@ -66,8 +66,10 @@ func setup() {
 	ipvsOnce.Do(func() {
 		var err error
 		if out, err := exec.Command("modprobe", "-va", "ip_vs").CombinedOutput(); err != nil {
-			fmt.Fprintf(os.Stderr, "Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
-			os.Exit(1)
+			if os.Getenv("SKIP_IPVSKERNELREQ") != "1" {
+				fmt.Fprintf(os.Stderr, "Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+				os.Exit(1)
+			}
 		}
 
 		ipvsFamily, err = getIPVSFamily()
