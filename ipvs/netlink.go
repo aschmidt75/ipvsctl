@@ -11,6 +11,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -65,7 +66,8 @@ func setup() {
 	ipvsOnce.Do(func() {
 		var err error
 		if out, err := exec.Command("modprobe", "-va", "ip_vs").CombinedOutput(); err != nil {
-			fmt.Sprintf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+			fmt.Fprintf(os.Stderr, "Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+			os.Exit(1)
 		}
 
 		ipvsFamily, err = getIPVSFamily()
