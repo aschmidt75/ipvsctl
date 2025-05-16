@@ -20,12 +20,12 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 			if err != nil {
 				return res, err
 			}
-			if equal == true {
+			if equal {
 				found = true
 			}
 		}
 
-		if found == false {
+		if !found {
 			var adr string
 			if service.service != nil {
 				adr = MakeAdressStringFromIpvsService(service.service)
@@ -53,12 +53,12 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 			if err != nil {
 				return res, err
 			}
-			if equal == true {
+			if equal {
 				found = true
 			}
 		}
 
-		if found == false {
+		if !found {
 			res.AddChange(ChangeSetItem{
 				Type:        AddService,
 				Description: fmt.Sprintf("Adding new service %s because it does not yet exist", newService.Address),
@@ -77,7 +77,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 			if err != nil {
 				return res, err
 			}
-			if equal == true {
+			if equal {
 				newSched := newService.SchedName
 				if newSched == "" {
 					// default given?
@@ -111,12 +111,12 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 						if err != nil {
 							return res, err
 						}
-						if equal == true {
+						if equal {
 							found = true
 						}
 					}
 
-					if found == false {
+					if !found {
 						var adrService, adrDestination string
 						if service.service != nil {
 							adrService = MakeAdressStringFromIpvsService(service.service)
@@ -147,11 +147,11 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 						if err != nil {
 							return res, err
 						}
-						if equal == true {
+						if equal {
 							found = true
 						}
 					}
-					if found == false {
+					if !found {
 						var adrService string
 						if service.service != nil {
 							adrService = MakeAdressStringFromIpvsService(service.service)
@@ -178,7 +178,7 @@ func (ipvsconfig *IPVSConfig) ChangeSet(newconfig *IPVSConfig, opts ApplyOpts) (
 							if err != nil {
 								return res, err
 							}
-							if equal == false {
+							if !equal {
 								var adrService string
 								if service.service != nil {
 									adrService = MakeAdressStringFromIpvsService(service.service)

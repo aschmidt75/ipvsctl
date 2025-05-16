@@ -28,9 +28,9 @@ func parseAllowedActions(actionSpec *string) (integration.ApplyActions, error) {
 		res := make(integration.ApplyActions, len(actions))
 		for _, action := range actions {
 			_, ex := all[integration.ApplyActionType(action)]
-			if ex == false {
+			if !ex {
 				// no such action
-				return integration.ApplyActions{}, fmt.Errorf("Invalid action: %s", action)
+				return integration.ApplyActions{}, fmt.Errorf("invalid action: %s", action)
 			}
 			res[integration.ApplyActionType(action)] = true
 		}

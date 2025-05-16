@@ -102,11 +102,11 @@ services:
 		t.Run(test.model, func(t *testing.T) {
 			err := validate(t, test.model)
 			if err == nil {
-				if test.ok == false {
+				if !test.ok {
 					t.Error("Should have returned a validation error, but did not")
 				}
 			} else {
-				if test.ok == true {
+				if test.ok {
 					t.Error("Should have passed but returned a validation error: %w", err)
 
 				}
@@ -166,11 +166,11 @@ defaults:
 		t.Run(test.model, func(t *testing.T) {
 			err := validate(t, test.model)
 			if err == nil {
-				if test.ok == false {
+				if !test.ok {
 					t.Error("Should have returned a validation error, but did not")
 				}
 			} else {
-				if test.ok == true {
+				if test.ok {
 					t.Error("Should have passed but returned a validation error: %w", err)
 
 				}

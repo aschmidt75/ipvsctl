@@ -97,7 +97,7 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 	cfg := config.Config()
 
 	intfAddrMap := make(map[string]string)
-	if cfg.ParamsHostNetwork == true {
+	if cfg.ParamsHostNetwork {
 		intfs, err := net.Interfaces()
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Specified dynamic parameter from local network interfaces, but unable to query them: %s\n", err)
@@ -126,7 +126,7 @@ func resolveParams(ipvsconfig *integration.IPVSConfig) (*integration.IPVSConfig,
 	}
 
 	envMap := make(map[string]string)
-	if cfg.ParamsHostEnv == true {
+	if cfg.ParamsHostEnv {
 		for _, e := range os.Environ() {
 			a := strings.Split(e, "=")
 			if len(a) == 2 {

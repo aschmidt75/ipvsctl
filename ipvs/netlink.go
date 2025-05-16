@@ -1,6 +1,7 @@
 // from libnetwork: https://github.com/docker/libnetwork
 // Code and documentation copyright 2015 Docker, inc.
 // Code released under the Apache 2.0 license.
+//go:build linux
 // +build linux
 
 package ipvs
@@ -10,6 +11,7 @@ import (
 	"encoding/binary"
 	"fmt"
 	"net"
+	"os"
 	"os/exec"
 	"strings"
 	"sync"
@@ -64,7 +66,10 @@ func setup() {
 	ipvsOnce.Do(func() {
 		var err error
 		if out, err := exec.Command("modprobe", "-va", "ip_vs").CombinedOutput(); err != nil {
-			fmt.Sprintf("Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+			if os.Getenv("SKIP_IPVSKERNELREQ") != "1" {
+				fmt.Fprintf(os.Stderr, "Running modprobe ip_vs failed with message: `%s`, error: %v", strings.TrimSpace(string(out)), err)
+				os.Exit(1)
+			}
 		}
 
 		ipvsFamily, err = getIPVSFamily()
@@ -225,10 +230,10 @@ func execute(s *nl.NetlinkSocket, req *nl.NetlinkRequest, resType uint16) ([][]b
 
 done:
 	for {
-		msgs, err := s.Receive()
+		msgs, _, err := s.Receive()
 		if err != nil {
 			if s.GetFd() == -1 {
-				return nil, fmt.Errorf("Socket got closed on receive")
+				return nil, fmt.Errorf("socket got closed on receive")
 			}
 			if err == syscall.EAGAIN {
 				// timeout fired
@@ -241,7 +246,7 @@ done:
 				continue
 			}
 			if m.Header.Pid != pid {
-				return nil, fmt.Errorf("Wrong pid %d, expected %d", m.Header.Pid, pid)
+				return nil, fmt.Errorf("wrong pid %d, expected %d", m.Header.Pid, pid)
 			}
 			if m.Header.Type == syscall.NLMSG_DONE {
 				break done

@@ -1,6 +1,5 @@
 // libraryexample1 applies a model as a whole on top of an existing
 // ipvs tables model.
-//
 package main
 
 import (

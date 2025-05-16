@@ -235,6 +235,10 @@ func (c *IPVSConfig) NewIpvsServiceStruct(s *Service) (*ipvs.Service, error) {
 			port = *c.Defaults.Port
 		}
 	}
+	// Ensure the parsed port is within the valid range for uint16
+	if port < 0 || port > 65535 {
+		return nil, errors.New("port out of range")
+	}
 
 	var protoAsNum uint16
 	switch proto {
@@ -295,6 +299,10 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 			p = *c.Defaults.Port
 		}
 	}
+	// Ensure the parsed port is within the valid range for uint16
+	if p < 0 || p > 65535 {
+		return nil, errors.New("port out of range")
+	}
 
 	df := destination.Forward
 	if df == "" {
@@ -339,7 +347,7 @@ func CompareServicesEquality(ca *IPVSConfig, a *Service, cb *IPVSConfig, b *Serv
 	if err != nil {
 		return false, err
 	}
-	if ident == false {
+	if !ident {
 		return false, nil
 	}
 
@@ -444,7 +452,7 @@ func CompareDestinationsEquality(ca *IPVSConfig, a *Destination, cb *IPVSConfig,
 		return false, nil
 	}
 
-	if opts.KeepWeights == false {
+	if !opts.KeepWeights {
 		// compare weight
 		aw := a.Weight
 		bw := b.Weight
