@@ -22,15 +22,19 @@ checksum:
   algorithm: sha512
 
 sboms:
-  - id: default
-    path: sboms
-    formats:
-      - cyclonedx-json
-      - spdx-json
+  - id: ipvsctl
+    documents:
+      - "${artifact}.sbom.json"
+    cmd: syft
+    args: ["$artifact", "--output", "cyclonedx-json=$document"]
+    env:
+      - SYFT_FILE_METADATA_CATALOGER_ENABLED=true
+    artifacts: any
+
 
 release:
   extra_files:
-    - glob: sboms/*.json
+    - glob: dist/*.sbom.json
 
 snapshot:
   version_template: "{{ .Tag }}-next"
