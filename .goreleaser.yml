@@ -24,10 +24,10 @@ checksum:
 sboms:
   - id: ipvsctl
     documents:
-      - "${artifact}.sbom.json"
+      - "ipvsctl.sbom.json"
     cmd: syft
-    args: ["$artifact", "--output", "cyclonedx-json=$document"]
-    artifacts: source
+    args: ["..", "--output", "cyclonedx-json=$document"]
+    artifacts: any
 
 
 release:
