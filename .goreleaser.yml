@@ -27,9 +27,7 @@ sboms:
       - "${artifact}.sbom.json"
     cmd: syft
     args: ["$artifact", "--output", "cyclonedx-json=$document"]
-    env:
-      - SYFT_FILE_METADATA_CATALOGER_ENABLED=true
-    artifacts: any
+    artifacts: source
 
 
 release:
