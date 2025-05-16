@@ -20,8 +20,21 @@ builds:
 checksum:
   name_template: "{{ .ProjectName }}-{{ .Version }}_checksums.txt"
   algorithm: sha512
+
+sboms:
+  - id: default
+    path: sboms
+    formats:
+      - cyclonedx-json
+      - spdx-json
+
+release:
+  extra_files:
+    - glob: sboms/*.json
+
 snapshot:
   version_template: "{{ .Tag }}-next"
+
 changelog:
   sort: asc
   filters:
