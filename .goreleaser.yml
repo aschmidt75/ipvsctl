@@ -1,11 +1,11 @@
-project_name: ipvsdsc
+project_name: ipvsctl
 version: 2
 before:
   hooks:
     - go mod download
 builds:
-  - id: ipvsdsc
-    binary: ipvsdsc
+  - id: ipvsctl
+    binary: ipvsctl
     ldflags:
       - -s -w -X main.version=v{{.Version}} -X main.commit={{.Commit}} -X main.date={{.CommitDate}}
     env:
