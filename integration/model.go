@@ -235,6 +235,10 @@ func (c *IPVSConfig) NewIpvsServiceStruct(s *Service) (*ipvs.Service, error) {
 			port = *c.Defaults.Port
 		}
 	}
+	// Ensure the parsed port is within the valid range for uint16
+	if port < 0 || port > 65535 {
+		return nil, errors.New("port out of range")
+	}
 
 	var protoAsNum uint16
 	switch proto {
@@ -294,6 +298,10 @@ func (c *IPVSConfig) NewIpvsDestinationStruct(destination *Destination) (*ipvs.D
 		if c.Defaults.Port != nil {
 			p = *c.Defaults.Port
 		}
+	}
+	// Ensure the parsed port is within the valid range for uint16
+	if p < 0 || p > 65535 {
+		return nil, errors.New("port out of range")
 	}
 
 	df := destination.Forward
