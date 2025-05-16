@@ -11,10 +11,20 @@ permissions:
 jobs:
   release:
     runs-on: ubuntu-latest
-    if: startsWith(github.ref, 'refs/tags/v') && github.ref_type == 'tag' && github.base_ref == 'master'
+    if: startsWith(github.ref, 'refs/tags/v') && github.ref_type == 'tag'
     steps:
         - name: Checkout code
           uses: actions/checkout@v3
+
+        - name: Check if tag is from master
+          run: |
+            git fetch origin master
+            if git merge-base --is-ancestor origin/master $GITHUB_SHA; then
+              echo "Tag is from master"
+            else
+              echo "Tag is not from master. Exiting."
+              exit 1
+            fi
 
         - name: Set up Go
           uses: actions/setup-go@v5
